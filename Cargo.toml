@@ -1,5 +1,5 @@
 [package]
-name = "asyou-rust-sdk"
+name = "asyou_rust_sdk"
 version = "0.5.0"
 edition = "2021"
 
