@@ -39,6 +39,7 @@ ink_env = "3.3.0"
 ink_prelude ={version = "3", default-features = false}
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = ["derive", "full", "bit-vec"] }
 hex = "0.4.3"
+tiny-bip39 = "0.8.2"
 
 [profile.release]
 opt-level = 3

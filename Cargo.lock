@@ -211,7 +211,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "asyou_rust-sdk"
+name = "asyou_rust_sdk"
 version = "0.5.0"
 dependencies = [
  "anyhow",
@@ -237,6 +237,7 @@ dependencies = [
  "sqlx",
  "subxt",
  "thiserror",
+ "tiny-bip39",
  "tokio",
  "tracing-subscriber 0.3.16",
 ]
