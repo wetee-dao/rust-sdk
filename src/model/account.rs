@@ -25,7 +25,6 @@ pub struct KeringJSON {
   // 加密方式
   pub encoding: KeringJSONEncoding,
   // 元数据
-  #[serde(flatten)]
   pub meta: HashMap<String, String>,
 }
 

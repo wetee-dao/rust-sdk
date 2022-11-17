@@ -57,7 +57,7 @@ pub fn get_seed_phrase(seed_str: String,name: String,password: String) -> anyhow
    let pwb = password.as_bytes().to_vec();
    let pwb_len = pwb.len();
    let mut keypw = vec![];
-   if pwb_len ==32 {
+   if pwb_len == 32 {
       keypw = password.as_bytes().to_vec();
    }else{
       for i in 0..32 {
