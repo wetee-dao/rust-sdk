@@ -3,7 +3,7 @@ use bip39::{Language, Mnemonic, MnemonicType};
 use sp_core::hexdisplay::AsBytesRef;
 use subxt::{
    ext::{
-     sp_core::{sr25519::{Pair}, Pair as TraitPair,hexdisplay::HexDisplay,crypto::{Ss58AddressFormat,Ss58AddressFormatRegistry,Ss58Codec}},
+     sp_core::{sr25519::{Pair}, Pair as TraitPair,hexdisplay::HexDisplay,crypto::{Ss58AddressFormat,Ss58Codec}},
    }
 };
 use xsalsa20poly1305::{aead::{generic_array::GenericArray, Aead}, XSalsa20Poly1305, KeyInit};
@@ -40,7 +40,7 @@ pub fn generate()-> String {
 // 	}
 // }
 
-pub fn get_seed_phrase(seed_str: String,name: String,password: String) -> KeringJSON {
+pub fn get_seed_phrase(seed_str: String,name: String,password: String) -> anyhow::Result<KeringJSON> {
    // 助记词换账户
    let (pair, seed) =  Pair::from_phrase(&seed_str, None).unwrap();
 
@@ -85,7 +85,7 @@ pub fn get_seed_phrase(seed_str: String,name: String,password: String) -> Kering
    let mut meta: HashMap<String,String> = HashMap::new();
    meta.insert("name".to_string(), name);
 
-   KeringJSON{
+   Ok(KeringJSON{
       address: public_key.to_ss58check_with_version(
          Ss58AddressFormat::custom(42),
       ),
@@ -96,7 +96,7 @@ pub fn get_seed_phrase(seed_str: String,name: String,password: String) -> Kering
          version: "asyou-0".to_string(),
       },
       meta: meta,
-   }
+   })
 }
 
 
