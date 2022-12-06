@@ -84,11 +84,13 @@ pub fn get_seed_phrase(seed_str: String,name: String,password: String) -> anyhow
    // 账户元数据
    let mut meta: HashMap<String,String> = HashMap::new();
    meta.insert("name".to_string(), name);
+   meta.insert("ss58_prefix".to_string(), 42.to_string());
 
    Ok(KeringJSON{
-      address: public_key.to_ss58check_with_version(
-         Ss58AddressFormat::custom(42),
-      ),
+      address: String::from("0x")+hex::encode(public_key.0).as_str(),
+      // address: public_key.to_ss58check_with_version(
+      //    Ss58AddressFormat::custom(42),
+      // ),
       encoded: hex::encode(ciphertext),
       encoding: KeringJSONEncoding{
          content: vec!["sr25519".to_string()],
