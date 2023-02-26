@@ -43,15 +43,3 @@ xsalsa20poly1305 = "0.9.0"
 
 [profile.release]
 opt-level = 3
-
-[[example]]
-name = "main"
-path = "examples/main.rs"
-
-# [[example]]
-# name = "trace_source"
-# path = "examples/trace_source.rs"
-
-# [[example]]
-# name = "feeless"
-# path = "examples/feeless.rs"

@@ -1,33 +1,40 @@
+use sp_core::H256;
+
+use crate::chain::*;
+
 /// 区块链连接
 #[derive(Debug, Clone)]
 pub struct Client {
-  // 连接
-  pub uri: String,
-  // 用户种子
-  pub seed: String,
-  // 用户账户
-  address: String,
-  // 用户密码
-  key: String,
+    // u32
+    pub index: u32,
 }
 
 impl Client {
-  pub fn new(uri: String, seed: String) -> Self {
-    Client {
-      uri: uri,
-      seed: seed,
-      address: "".to_string(),
-      key: "".to_string(),
+    pub async fn new(uri: String) -> anyhow::Result<Self, anyhow::Error> {
+        let i = get_api_index(uri.clone()).await?;
+
+        Ok(Client { index: i })
     }
-  }
 
-  pub fn seed_get(&self) -> String {
-    return self.seed.clone();
-  }
+    pub async fn get_block_number(&self) -> Result<(u32, String), subxt::Error> {
+        // 获取区块链接口
+        let apis = API_POOL.lock().unwrap();
+        let api = apis.get(self.index as usize).unwrap();
 
-  // pub fn create_decoder(metadata: Metadata) -> EventsDecoder<DefaultNodeRuntime> {
-  //   let mut decoder = EventsDecoder::<DefaultNodeRuntime>::new(metadata);
-  //   decoder.register_type_size::<[u8; 16]>("ReportId");
-  //   decoder
-  // }
+        let mut blocks = api.rpc().subscribe_finalized_blocks().await?;
+
+        while let Some(Ok(block)) = blocks.next().await {
+            return Ok((block.number, block.hash().to_string()));
+        }
+
+        Err(subxt::Error::Other("无法获取区块".to_owned()))
+    }
+
+    pub async fn get_genesis_hash(&self) -> Result<H256, subxt::Error> {
+        // 获取区块链接口
+        let apis = API_POOL.lock().unwrap();
+        let api = apis.get(self.index as usize).unwrap();
+
+        api.rpc().genesis_hash().await
+    }
 }
