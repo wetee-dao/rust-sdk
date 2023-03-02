@@ -1,9 +1,10 @@
 use std::str::FromStr;
 
-use super::super::chain::*;
+use subxt::ext::sp_runtime::AccountId32;
+
 use super::super::client::Client;
 use super::base_hander::BaseHander;
-use crate::chain::asyoume::{self};
+use crate::chain::wetee_chain;
 
 /// 账户
 pub struct Balance {
@@ -22,11 +23,10 @@ impl Balance {
         address: String,
     ) -> Result<(u128, u128, u128, u128), Box<dyn std::error::Error>> {
         // 获取区块链接口
-        let apis = API_POOL.lock().unwrap();
-        let api = apis.get(self.base.get_client_index()).unwrap();
+        let api = self.base.get_client().await?;
 
-        let account_id = sp_runtime::AccountId32::from_str(&address)?;
-        let addr = asyoume::storage().balances().account(account_id);
+        let account_id = AccountId32::from_str(&address)?;
+        let addr = wetee_chain::storage().balances().account(account_id);
 
         let value = api.storage().fetch_or_default(&addr, None).await?;
 

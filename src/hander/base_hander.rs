@@ -1,3 +1,7 @@
+use subxt::OnlineClient;
+
+use crate::chain::WeteeConfig;
+
 use super::super::client::Client;
 
 #[derive(Debug)]
@@ -9,8 +13,8 @@ pub struct BaseHander {
 }
 
 impl BaseHander {
-    pub fn get_client_index(&self) -> usize {
-        self.client.index as usize
+    pub async fn get_client(&mut self) -> anyhow::Result<OnlineClient<WeteeConfig>, anyhow::Error> {
+        self.client.get_api().await
     }
 
     pub fn new(c: Client, feeless: bool) -> Self {

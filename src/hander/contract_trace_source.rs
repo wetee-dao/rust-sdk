@@ -1,15 +1,12 @@
 use codec::Encode;
-use futures::StreamExt;
 use ink_env::call::{ExecutionInput, Selector};
+use sp_runtime::{
+    traits::{BlakeTwo256, Hash},
+    MultiAddress,
+};
 use std::convert::TryInto;
 use std::str::FromStr;
-use subxt::{
-    ext::sp_runtime::{
-        traits::{BlakeTwo256, Hash},
-        MultiAddress,
-    },
-    tx::{PairSigner, TxStatus::*},
-};
+use subxt::tx::{PairSigner, TxStatus::*};
 
 use super::super::account::*;
 use super::super::chain::*;
@@ -17,7 +14,7 @@ use super::super::client::Client;
 use super::super::model::contract_trace_source::*;
 use super::base_hander::BaseHander;
 
-/// 艺术品
+/// 智能合约
 pub struct ContractTraceSource {
     pub base: BaseHander,
 }
@@ -37,8 +34,7 @@ impl ContractTraceSource {
         from: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // 获取区块链接口
-        let apis = API_POOL.lock().unwrap();
-        let api = apis.get(self.base.get_client_index()).unwrap();
+        let api = self.base.get_client().await?;
 
         // 构建创建者
         let signer = get_from_address(from).expect("Could not obtain stash signer pair");
@@ -56,7 +52,7 @@ impl ContractTraceSource {
         .push_arg(meta);
 
         // 构建请求
-        let call_tx = asyoume::tx().contracts().call(
+        let call_tx = wetee_chain::tx().contracts().call(
             MultiAddress::Id(contract_address.clone()),
             0,         // value
             GAS_LIMIT, // gas_limit
@@ -87,8 +83,7 @@ impl ContractTraceSource {
                     details.block_hash()
                 );
                 let events = details.wait_for_success().await?;
-                let call_event =
-                    events.find_first::<asyoume::system::events::ExtrinsicSuccess>()?;
+                let call_event = events.find_first::<wetee::system::events::ExtrinsicSuccess>()?;
                 if let Some(event) = call_event {
                     println!("Balance transfer success: {event:?}");
                 } else {

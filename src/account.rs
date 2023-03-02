@@ -3,14 +3,14 @@ use crate::{
     model::{account::*, err::AccountError},
 };
 use bip39::{Language, Mnemonic, MnemonicType};
-use sp_core::hexdisplay::AsBytesRef;
-use std::collections::HashMap;
-use subxt::ext::sp_core::{
+use sp_core::{
     crypto::{Ss58AddressFormat, Ss58Codec},
-    hexdisplay::HexDisplay,
+    hexdisplay::{AsBytesRef, HexDisplay},
     sr25519::Pair,
     Pair as TraitPair,
 };
+use std::collections::HashMap;
+use subxt::tx::PairSigner;
 use xsalsa20poly1305::{
     aead::{generic_array::GenericArray, Aead},
     KeyInit, XSalsa20Poly1305,
@@ -47,7 +47,7 @@ pub fn get_seed_phrase(
     );
     println!(
         "SS58  Address:  {}",
-        public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42),)
+        public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42))
     );
 
     // 因key必须32位，即重复key得到32位key
@@ -122,19 +122,11 @@ pub fn pair_from_password(
     let pair = Pair::from_seed_slice(&seed.as_slice()).unwrap();
     let public_key = pair.public();
     println!(
-        "Public333 key:  {}",
+        "import Public key:  {}",
         format_public_key::<Pair>(public_key.clone())
     );
 
     Ok(pair)
-}
-
-pub fn format_public_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
-    format!("0x{}", HexDisplay::from(&public_key.as_ref()))
-}
-
-pub fn format_seed<P: sp_core::Pair>(seed: SeedFor<P>) -> String {
-    format!("0x{}", HexDisplay::from(&seed.as_ref()))
 }
 
 // 获取账户
@@ -145,7 +137,7 @@ pub fn get_from_address(address: String) -> anyhow::Result<Pair, AccountError> {
 }
 
 // 添加账户
-pub fn add_keyring_from_seed(seed_str: String) -> anyhow::Result<String, AccountError> {
+pub fn add_keyring_from_seed(seed_str: String) -> anyhow::Result<(String, String), AccountError> {
     // 助记词换账户
     let (pair, _seed) = Pair::from_phrase(&seed_str, None).unwrap();
 
@@ -155,11 +147,15 @@ pub fn add_keyring_from_seed(seed_str: String) -> anyhow::Result<String, Account
     let mut _key_box = KERINGS.lock().unwrap();
     _key_box.insert(address.clone(), pair);
 
-    Ok(address)
+    let ss58address = public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42));
+    Ok((address, ss58address))
 }
 
 // 添加密码key
-pub fn add_keyring(keyring: KeyringJSON, password: String) -> anyhow::Result<String, AccountError> {
+pub fn add_keyring(
+    keyring: KeyringJSON,
+    password: String,
+) -> anyhow::Result<(String, String), AccountError> {
     // 获取账户
     let pair = pair_from_password(keyring, password)?;
 
@@ -168,5 +164,20 @@ pub fn add_keyring(keyring: KeyringJSON, password: String) -> anyhow::Result<Str
 
     let mut _key_box = KERINGS.lock().unwrap();
     _key_box.insert(address.clone(), pair);
-    Ok(address)
+
+    let ss58address = public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42));
+
+    Ok((address, ss58address))
 }
+
+pub fn format_public_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
+    format!("0x{}", HexDisplay::from(&public_key.as_ref()))
+}
+
+pub fn format_seed<P: sp_core::Pair>(seed: SeedFor<P>) -> String {
+    format!("0x{}", HexDisplay::from(&seed.as_ref()))
+}
+
+// pub fn pair_signer(pair: Pair) -> PairSigner<WeteeConfig, Pair> {
+//     PairSigner::new(pair).try_into().unwrap()
+// }
