@@ -9,7 +9,7 @@ use sp_core::{
     sr25519::Pair,
     Pair as TraitPair,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 use subxt::tx::PairSigner;
 use xsalsa20poly1305::{
     aead::{generic_array::GenericArray, Aead},
@@ -168,6 +168,17 @@ pub fn add_keyring(
     let ss58address = public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42));
 
     Ok((address, ss58address))
+}
+
+// 添加密码key
+pub fn sign_from_address(address: String, ctx: String) -> anyhow::Result<String, AccountError> {
+    // 获取账户
+    let signer = get_from_address(address).expect("Could not obtain stash signer pair");
+    let sign = signer.sign(ctx.as_bytes());
+
+    let str = hex::encode(sign.0);
+
+    Ok("0x".to_owned() + &str)
 }
 
 pub fn format_public_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
