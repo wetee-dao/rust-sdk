@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 #![cfg(test)]
 
-use crate::hander::{balance::Balance, wetee_app::Wetee};
+// use crate::hander::{balance::Balance, wetee_app::Wetee};
 use sp_core::{sr25519::Pair, Pair as TraitPair};
 use sp_runtime::print;
 use std::{thread, time::Duration};
