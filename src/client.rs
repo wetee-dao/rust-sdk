@@ -1,4 +1,4 @@
-use subxt::OnlineClient;
+use subxt::{config::Header, OnlineClient};
 
 use crate::chain::*;
 

@@ -9,7 +9,7 @@ use sp_core::{
     sr25519::Pair,
     Pair as TraitPair,
 };
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 use subxt::tx::PairSigner;
 use xsalsa20poly1305::{
     aead::{generic_array::GenericArray, Aead},

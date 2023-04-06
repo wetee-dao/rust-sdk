@@ -2,10 +2,7 @@ use once_cell::sync::Lazy;
 use sp_core::sr25519::Pair;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use subxt::{
-    config::{Config, SubstrateConfig},
-    tx::SubstrateExtrinsicParams,
-};
+use subxt::config::{substrate::SubstrateExtrinsicParams, Config, SubstrateConfig};
 
 #[subxt::subxt(runtime_metadata_path = "./metadata_full.scale")]
 pub mod wetee_chain {}
@@ -24,10 +21,9 @@ impl Config for WeteeConfig {
     // *Note* that in this example it does differ from the actual `Index` type in the
     // polkadot runtime used, so some operations will fail. Normally when using a custom `Config`
     // impl types MUST match exactly those used in the actual runtime.
-    type Index = u32;
-    type BlockNumber = <SubstrateConfig as Config>::BlockNumber;
+    type Index = u64;
     type Hash = <SubstrateConfig as Config>::Hash;
-    type Hashing = <SubstrateConfig as Config>::Hashing;
+    type Hasher = <SubstrateConfig as Config>::Hasher;
     type AccountId = AccountId;
     type Address = <SubstrateConfig as Config>::Address;
     type Header = <SubstrateConfig as Config>::Header;

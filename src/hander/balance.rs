@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use subxt::ext::sp_runtime::AccountId32;
+use subxt::utils::AccountId32;
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
@@ -28,7 +28,7 @@ impl Balance {
         let account_id = AccountId32::from_str(&address)?;
         let addr = wetee_chain::storage().balances().account(account_id);
 
-        let value = api.storage().fetch_or_default(&addr, None).await?;
+        let value = api.storage().at(None).await?.fetch(&addr).await?.unwrap();
 
         Ok((
             value.free,
