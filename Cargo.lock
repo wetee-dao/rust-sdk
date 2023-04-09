@@ -807,7 +807,7 @@ dependencies = [
 [[package]]
 name = "daoent-assets"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-dao",
  "daoent-primitives",
@@ -830,7 +830,7 @@ dependencies = [
 [[package]]
 name = "daoent-dao"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-primitives",
  "frame-benchmarking",
@@ -846,7 +846,7 @@ dependencies = [
 [[package]]
 name = "daoent-gov"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-assets",
  "daoent-dao",
@@ -867,7 +867,7 @@ dependencies = [
 [[package]]
 name = "daoent-guild"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-assets",
  "daoent-dao",
@@ -892,7 +892,7 @@ dependencies = [
 [[package]]
 name = "daoent-primitives"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -905,7 +905,7 @@ dependencies = [
 [[package]]
 name = "daoent-project"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-assets",
  "daoent-dao",
@@ -930,7 +930,7 @@ dependencies = [
 [[package]]
 name = "daoent-sudo"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-dao",
  "daoent-primitives",
@@ -1170,13 +1170,13 @@ checksum = "e48c92028aaa870e83d51c64e5d4e0b6981b360c522198c23959f219a4e1b15b"
 
 [[package]]
 name = "errno"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50d6a0976c999d473fe89ad888d5a284e55366d9dc9038b1ba2aa15128c4afa0"
+checksum = "4bcfec3a70f97c962c307b2d2c56e358cf1d00b558d74262b5f929ee8cc7e73a"
 dependencies = [
  "errno-dragonfly",
  "libc",
- "windows-sys 0.45.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -2355,7 +2355,7 @@ version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffc89ccdc6e10d6907450f753537ebc5c5d3460d2e4e62ea74bd571db62c0f9e"
 dependencies = [
- "rustix 0.37.8",
+ "rustix 0.37.11",
 ]
 
 [[package]]
@@ -2530,7 +2530,7 @@ dependencies = [
 [[package]]
 name = "node-template-runtime"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-assets",
  "daoent-dao",
@@ -3645,9 +3645,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.37.8"
+version = "0.37.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1aef160324be24d31a62147fae491c14d2204a3865c7ca8c3b0d7f7bcb3ea635"
+checksum = "85597d61f83914ddeba6a47b3b8ffe7365107221c2e557ed94426489fefb5f77"
 dependencies = [
  "bitflags",
  "errno",
@@ -4076,9 +4076,9 @@ dependencies = [
 
 [[package]]
 name = "simba"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50582927ed6f77e4ac020c057f37a268fc6aebc29225050365aacbb9deeeddc4"
+checksum = "061507c94fc6ab4ba1c9a0305018408e312e17c041eb63bef8aa726fa33aceae"
 dependencies = [
  "approx",
  "num-complex",
@@ -4987,7 +4987,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "fastrand",
  "redox_syscall 0.3.5",
- "rustix 0.37.8",
+ "rustix 0.37.11",
  "windows-sys 0.45.0",
 ]
 
@@ -5846,7 +5846,7 @@ dependencies = [
 [[package]]
 name = "wetee-app"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#a34e5d2cbca7745f6ecf5f5256397d7b8e39969d"
+source = "git+https://github.com/WeteeDAO/wetee#e101b47da1c8a89c262dd6b1a3eb1aee6e1f79ee"
 dependencies = [
  "daoent-dao",
  "daoent-primitives",
