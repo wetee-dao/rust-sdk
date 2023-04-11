@@ -40,17 +40,17 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
     "full",
     "bit-vec",
 ] }
-sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
-sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
-sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
-pallet-balances = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
-
 substrate-api-client = { git = 'https://github.com/scs/substrate-api-client', branch = 'polkadot-v0.9.39', features = [
     "std",
     "ws-client",
     "staking-xt",
 ] }
-node-template-runtime = { git = "https://github.com/WeteeDAO/wetee" }
+sp-core = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
+sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
+sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
+pallet-balances = { git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
+wetee-runtime = { git = "https://github.com/WeteeDAO/wetee" }
+wetee-assets = { git = "https://github.com/WeteeDAO/wetee" }
 
 [profile.release]
 opt-level = 3

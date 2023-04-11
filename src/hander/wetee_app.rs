@@ -1,22 +1,5 @@
-use anyhow::Error;
-
-use codec::Encode;
-use sp_keyring::AccountKeyring;
-
-use sp_core::{
-    crypto::{Pair, Ss58Codec},
-    sr25519,
-};
-use sp_runtime::MultiAddress;
-use substrate_api_client::{
-    extrinsic::BalancesExtrinsics, rpc::WsRpcClient, Api, AssetTipExtrinsicParams, ExtrinsicSigner,
-    GetAccountInformation, SubmitAndWatch, XtStatus,
-};
-
 use super::base_hander::BaseHander;
-use crate::account;
 use crate::client::Client;
-use crate::model::wetee::TeeApp as MTeeApp;
 
 /// TEE程序
 pub struct Wetee {

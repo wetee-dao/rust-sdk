@@ -1,48 +1,29 @@
 use anyhow::Ok;
-use node_template_runtime::Runtime;
 use sp_core::sr25519;
-use substrate_api_client::{rpc::WsRpcClient, Api, GetBlock, GetHeader, PlainTipExtrinsicParams};
+use substrate_api_client::{rpc::WsRpcClient, Api, GetHeader, PlainTipExtrinsicParams};
+use wetee_runtime::Runtime;
 
-use crate::{chain::*, error_types::Error};
+use crate::chain::*;
 
 /// 区块链连接
 #[derive(Debug, Clone)]
 pub struct Client {
     // u32
     pub index: u32,
-
     // 链接
-    api: Option<String>,
+    // api: Option<String>,
 }
 
 impl Client {
     pub fn new(uri: String) -> anyhow::Result<Self, anyhow::Error> {
         let i = get_api_index(uri.clone())?;
 
-        Ok(Client {
-            index: i,
-            api: None,
-        })
+        Ok(Client { index: i })
     }
 
     pub fn from_index(index: u32) -> anyhow::Result<Self, anyhow::Error> {
-        Ok(Client { index, api: None })
+        Ok(Client { index })
     }
-
-    // pub fn get_api(&mut self) -> anyhow::Result<Api, anyhow::Error> {
-    //     if self.api.is_some() {
-    //         return Ok(self.api.clone().unwrap());
-    //     }
-
-    //     let apis = API_POOL.lock().unwrap();
-    //     let url = apis.get(self.index as usize).unwrap();
-
-    //     let client = WsRpcClient::new(url);
-    //     let api = Api::<_, _, PlainTipExtrinsicParams<Runtime>, Runtime>::new(client).unwrap();
-    //     self.api = Some(api.clone());
-
-    //     Ok(api)
-    // }
 
     pub fn get_url(&mut self) -> anyhow::Result<String, anyhow::Error> {
         let apis = API_POOL.lock().unwrap();

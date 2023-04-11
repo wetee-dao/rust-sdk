@@ -6,7 +6,7 @@ use bip39::{Language, Mnemonic, MnemonicType};
 use sp_core::{
     crypto::{Ss58AddressFormat, Ss58Codec},
     hexdisplay::{AsBytesRef, HexDisplay},
-    sr25519::Pair,
+    sr25519::{Pair, Public},
     Pair as TraitPair,
 };
 use std::collections::HashMap;
@@ -38,16 +38,16 @@ pub fn get_seed_phrase(
 
     // 获取公钥
     let public_key = pair.public();
-    println!("Secret phrase:  {}", seed_str);
-    println!("Secret   seed:  {}", format_seed::<Pair>(seed));
-    println!(
-        "Public    key:  {}",
-        format_public_key::<Pair>(public_key.clone())
-    );
-    println!(
-        "SS58  Address:  {}",
-        public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42))
-    );
+    // println!("Secret phrase:  {}", seed_str);
+    // println!("Secret   seed:  {}", format_seed::<Pair>(seed));
+    // println!(
+    //     "Public    key:  {}",
+    //     format_public_key::<Pair>(public_key.clone())
+    // );
+    // println!(
+    //     "SS58  Address:  {}",
+    //     public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42))
+    // );
 
     // 因key必须32位，即重复key得到32位key
     let pwb = password.as_bytes().to_vec();
@@ -81,7 +81,7 @@ pub fn get_seed_phrase(
         encoding: KeyringJSONEncoding {
             content: vec!["sr25519".to_string()],
             typex: "xsalsa20-poly1305".to_string(),
-            version: "daoent-0".to_string(),
+            version: "wetee-0".to_string(),
         },
         meta,
     })
@@ -119,17 +119,26 @@ pub fn pair_from_password(
 
     let seed = seed_result.unwrap();
     let pair = Pair::from_seed_slice(&seed.as_slice()).unwrap();
-    let public_key = pair.public();
-    println!(
-        "import Public key:  {}",
-        format_public_key::<Pair>(public_key.clone())
-    );
+    // let public_key = pair.public();
+    // println!(
+    //     "import Public key:  {}",
+    //     format_public_key::<Pair>(public_key.clone())
+    // );
 
     Ok(pair)
 }
 
 // 获取账户
 pub fn get_from_address(address: String) -> anyhow::Result<Pair, AccountError> {
+    let mut _key_box = KERINGS.lock().unwrap();
+    let pair = _key_box.get(&address).unwrap();
+    Ok(pair.clone())
+}
+
+// 获取账户
+pub fn get_from_ss58(ss58: String) -> anyhow::Result<Pair, AccountError> {
+    let public_key = Public::from_ss58check(&ss58).unwrap();
+    let address = format_public_key::<Pair>(public_key.clone());
     let mut _key_box = KERINGS.lock().unwrap();
     let pair = _key_box.get(&address).unwrap();
     Ok(pair.clone())
@@ -186,6 +195,10 @@ pub fn format_public_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
 
 pub fn format_seed<P: sp_core::Pair>(seed: SeedFor<P>) -> String {
     format!("0x{}", HexDisplay::from(&seed.as_ref()))
+}
+
+pub fn format_hex_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
+    format!("0x{}", HexDisplay::from(&public_key.as_ref()))
 }
 
 // pub fn pair_signer(pair: Pair) -> PairSigner<WeteeConfig, Pair> {

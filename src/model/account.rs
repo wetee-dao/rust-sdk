@@ -1,4 +1,6 @@
+use codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
+use sp_core::RuntimeDebug;
 use std::{collections::HashMap, fmt::Debug};
 
 /// 公钥类型
@@ -29,4 +31,12 @@ pub struct KeyringJSONEncoding {
     pub typex: String,
     // 加密版本
     pub version: String,
+}
+
+/// balance information for an account.
+#[derive(Encode, Decode, Clone, PartialEq, Eq, Default, MaxEncodedLen, RuntimeDebug)]
+pub struct AssetAccountData<Balance> {
+    pub free: Balance,
+    pub reserved: Balance,
+    pub frozen: Balance,
 }
