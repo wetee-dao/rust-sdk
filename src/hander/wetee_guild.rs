@@ -2,9 +2,10 @@ use crate::account;
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
-use wetee_runtime::{Runtime, RuntimeCall, Signature, WeteeGuildCall};
+use wetee_dao::GuildInfo;
+use wetee_runtime::{AccountId, BlockNumber, Runtime, RuntimeCall, Signature, WeteeGuildCall};
 
-use substrate_api_client::{ExtrinsicSigner, SubmitAndWatchUntilSuccess};
+use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 
 /// 账户
 pub struct WeteeGuild {
@@ -16,6 +17,37 @@ impl WeteeGuild {
         Self {
             base: BaseHander::new(c, false),
         }
+    }
+
+    pub fn guild_list(
+        &mut self,
+        dao_id: u64,
+    ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = api
+            .get_storage_map("WeteeDAO", "Guilds", dao_id, None)
+            .unwrap()
+            .unwrap_or_else(|| vec![]);
+
+        Ok(result)
+    }
+
+    pub fn guild_info(
+        &mut self,
+        dao_id: u64,
+        index: u32,
+    ) -> anyhow::Result<GuildInfo<AccountId, BlockNumber>, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = api
+            .get_storage_map("WeteeDAO", "Guilds", dao_id, None)
+            .unwrap()
+            .unwrap_or_else(|| vec![]);
+
+        Ok(result.get(index as usize).unwrap().clone())
     }
 
     pub fn create_guild(

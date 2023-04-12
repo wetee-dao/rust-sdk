@@ -3,9 +3,10 @@ use crate::account;
 use super::super::client::Client;
 use super::base_hander::BaseHander;
 use sp_core::{crypto::Ss58Codec, sr25519::Public};
+use wetee_project::ProjectInfo;
 use wetee_runtime::{AccountId, Runtime, RuntimeCall, Signature, WeteeProjectCall};
 
-use substrate_api_client::{ExtrinsicSigner, SubmitAndWatchUntilSuccess};
+use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 
 /// 账户
 pub struct WeteeProject {
@@ -17,6 +18,21 @@ impl WeteeProject {
         Self {
             base: BaseHander::new(c, false),
         }
+    }
+
+    pub fn project_list(
+        &mut self,
+        dao_id: u64,
+    ) -> anyhow::Result<Vec<ProjectInfo<AccountId>>, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let result: Vec<ProjectInfo<AccountId>> = api
+            .get_storage_map("WeteeProject", "DaoProjects", dao_id, None)
+            .unwrap()
+            .unwrap_or_else(|| vec![]);
+
+        Ok(result)
     }
 
     pub fn create_project(

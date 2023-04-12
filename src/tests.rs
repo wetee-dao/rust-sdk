@@ -12,18 +12,23 @@ use crate::hander::balance::Balance;
 use crate::hander::wetee_app::Wetee;
 use crate::hander::wetee_asset::WeteeAsset;
 use crate::hander::wetee_dao::WeteeDAO;
+use crate::hander::wetee_guild::WeteeGuild;
+use crate::hander::wetee_project::WeteeProject;
 
 use super::*;
 const SEED: &str = "gloom album notable jewel divorce never trouble lesson month neck sign harbor";
 const URL: &str = "ws://127.0.0.1:9944";
 pub static DAO_ID: OnceCell<u64> = OnceCell::new();
 
-// #[test]
-// pub fn test_seed() {
-//     let seed_str = account::generate();
-//     let seeds: Vec<&str> = seed_str.split(' ').collect();
-//     println!("seed_str => {:?}", seed_str);
-//     println!("seeds => {:?}", seeds);
+// #[tokio::test]
+// async fn test_sign() {
+//     let key =
+//         account::get_seed_phrase(SEED.into(), "test".to_owned(), "123456".to_owned()).unwrap();
+
+//     let (address, _ss58address) = account::add_keyring(key, "123456".to_owned()).unwrap();
+//     let str = account::sign_from_address(address, String::from("test")).unwrap();
+
+//     println!("str {:?}", str);
 // }
 
 #[test]
@@ -63,7 +68,7 @@ async fn test_blance() {
     println!("address {:?}", ss58address);
 
     let mut balance = Balance::new(client.clone());
-    let (_, _, _, _) = balance.balance(address.clone()).unwrap();
+    balance.balance(address.clone()).unwrap();
 
     balance
         .transfer(
@@ -82,7 +87,7 @@ async fn test_dao() {
     println!("address {:?}", ss58address);
 
     let mut dao = WeteeDAO::new(client);
-    let dao_id = dao.nex_dao_id().unwrap();
+    let dao_id = dao.next_dao_id().unwrap();
     println!("dao ===> {}", dao_id);
     DAO_ID.set(dao_id).unwrap();
 
@@ -115,7 +120,48 @@ async fn test_dao_asset() {
     .unwrap();
 
     let asset_b = dao.balance(*dao_id, address).unwrap();
-    print!("asset_b => {:?}", asset_b);
+    println!("asset_b => {:?}", asset_b);
+}
+
+#[tokio::test]
+async fn test_dao_guild() {
+    // 创建连接
+    let client = Client::new(URL.to_string()).unwrap();
+
+    let mut dao = WeteeGuild::new(client);
+    let dao_id = DAO_ID.get().unwrap();
+    println!("dao_id => {:?}", dao_id);
+    let gs = dao.guild_list(*dao_id).unwrap();
+
+    println!("gs => {:?}", gs);
+
+    let g = dao.guild_info(*dao_id, 0).unwrap();
+
+    println!("g => {:?}", g);
+}
+
+#[tokio::test]
+async fn test_dao_roadmap() {
+    // 创建连接
+    let client = Client::new(URL.to_string()).unwrap();
+
+    let mut dao = WeteeDAO::new(client);
+    let dao_id = DAO_ID.get().unwrap();
+    let rs = dao.roadmap_list(*dao_id, 2023).unwrap();
+
+    println!("rs => {:?}", rs);
+}
+
+#[tokio::test]
+async fn test_dao_projects() {
+    // 创建连接
+    let client = Client::new(URL.to_string()).unwrap();
+
+    let mut dao = WeteeProject::new(client);
+    let dao_id = DAO_ID.get().unwrap();
+    let ps = dao.project_list(*dao_id).unwrap();
+
+    println!("ps => {:?}", ps);
 }
 
 // #[tokio::test]
@@ -173,14 +219,3 @@ async fn test_dao_asset() {
 //     wetee.run_app(address, 1).await.unwrap();
 //     // println!("poolpool ===> {:?}", pool);
 // }
-
-#[tokio::test]
-async fn test_sign() {
-    let key =
-        account::get_seed_phrase(SEED.into(), "test".to_owned(), "123456".to_owned()).unwrap();
-
-    let (address, _ss58address) = account::add_keyring(key, "123456".to_owned()).unwrap();
-    let str = account::sign_from_address(address, String::from("test")).unwrap();
-
-    println!("str {:?}", str);
-}

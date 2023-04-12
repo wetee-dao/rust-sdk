@@ -36,7 +36,10 @@ pub struct KeyringJSONEncoding {
 /// balance information for an account.
 #[derive(Encode, Decode, Clone, PartialEq, Eq, Default, MaxEncodedLen, RuntimeDebug)]
 pub struct AssetAccountData<Balance> {
+    // 可用余额
     pub free: Balance,
+    // 锁定余额
     pub reserved: Balance,
+    // 冻结余额
     pub frozen: Balance,
 }

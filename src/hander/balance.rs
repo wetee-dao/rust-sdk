@@ -1,4 +1,4 @@
-use crate::account;
+use crate::{account, model::account::AssetAccountData};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
@@ -25,21 +25,18 @@ impl Balance {
     pub fn balance(
         &mut self,
         address: String,
-    ) -> anyhow::Result<(u128, u128, u128, u128), anyhow::Error> {
+    ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
         let api = self.base.get_client()?;
 
         let v = sr25519::Public::from_string(&address).unwrap();
         let balance = api.get_account_data(&v.into()).unwrap().unwrap_or_default();
 
-        println!("[+] balance's Free Balance is is {}\n", balance.free);
-        println!("{}", balance.free);
-
-        Ok((
-            balance.free,
-            balance.fee_frozen,
-            balance.reserved,
-            balance.misc_frozen,
-        ))
+        Ok(AssetAccountData {
+            free: balance.free.try_into().unwrap(),
+            frozen: balance.fee_frozen.try_into().unwrap(),
+            reserved: balance.reserved.try_into().unwrap(),
+            // balance.misc_frozen,
+        })
     }
 
     pub fn transfer(

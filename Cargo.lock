@@ -210,7 +210,7 @@ checksum = "b9ccdd8f2a161be9bd5c023df56f1b2a0bd1d83872ae53b71a84a12c9bf6e842"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -243,6 +243,8 @@ dependencies = [
  "tokio",
  "tracing-subscriber 0.3.16",
  "wetee-assets",
+ "wetee-dao",
+ "wetee-project",
  "wetee-runtime",
  "xsalsa20poly1305",
 ]
@@ -785,7 +787,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "scratch",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -802,7 +804,7 @@ checksum = "2345488264226bf682893e25de0769f3360aac9957980ec49361b083ddaa5bc5"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -1462,7 +1464,7 @@ checksum = "89ca545a94061b6365f2c7355b4b32bd20df3ff95f02da9329b34ccc3bd6ee72"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -2576,7 +2578,7 @@ checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -3296,7 +3298,7 @@ checksum = "8d2275aab483050ab2a7364c1a46604865ee7d6906684e08db0f090acf74f9e7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -3738,22 +3740,22 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.159"
+version = "1.0.160"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c04e8343c3daeec41f58990b9d77068df31209f2af111e059e9fe9646693065"
+checksum = "bb2f3770c8bce3bcda7e149193a069a0f4365bda1fa5cd88e03bca26afc1216c"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.159"
+version = "1.0.160"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c614d17805b093df4b147b51339e7e44bf05ef59fba1e45d83500bcfb4d8585"
+checksum = "291a097c63d8497e00160b166a967a4a79c64f3facdd01cbd7502231688d77df"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -3853,9 +3855,9 @@ dependencies = [
 
 [[package]]
 name = "sha3"
-version = "0.10.6"
+version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdf0c33fae925bdc080598b84bc15c55e7b9a4a43b3c704da051f977469691c9"
+checksum = "54c2bb1a323307527314a36bfb73f24febb08ce2b8a554bf4ffd6f51ad15198c"
 dependencies = [
  "digest 0.10.6",
  "keccak",
@@ -4772,9 +4774,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.13"
+version = "2.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c9da457c5285ac1f936ebd076af6dac17a61cfe7826f2076b4d015cf47bc8ec"
+checksum = "fcf316d5356ed6847742d036f8a39c3b8435cac10bd528a4bd461928a6ab34d5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4832,7 +4834,7 @@ checksum = "f9456a42c5b0d803c8cd86e73dd7cc9edd429499f37a3550d286d5e86720569f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -4936,7 +4938,7 @@ checksum = "61a573bdc87985e9d6ddeed1b3d864e8a302c847e40d647746df2f1de209d1ce"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]
@@ -5661,7 +5663,7 @@ dependencies = [
 [[package]]
 name = "wetee-app"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5678,7 +5680,7 @@ dependencies = [
 [[package]]
 name = "wetee-assets"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5701,7 +5703,7 @@ dependencies = [
 [[package]]
 name = "wetee-dao"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5717,7 +5719,7 @@ dependencies = [
 [[package]]
 name = "wetee-gov"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5738,7 +5740,7 @@ dependencies = [
 [[package]]
 name = "wetee-guild"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5763,7 +5765,7 @@ dependencies = [
 [[package]]
 name = "wetee-primitives"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5776,7 +5778,7 @@ dependencies = [
 [[package]]
 name = "wetee-project"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5801,7 +5803,7 @@ dependencies = [
 [[package]]
 name = "wetee-runtime"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-executive",
@@ -5848,7 +5850,7 @@ dependencies = [
 [[package]]
 name = "wetee-runtime-api"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -5859,7 +5861,7 @@ dependencies = [
 [[package]]
 name = "wetee-sudo"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee#7d3f188db23067cc013c74736616fa49beb6ac26"
+source = "git+https://github.com/WeteeDAO/wetee#dc274593d2f9c689282b8b976b092eda914f89b9"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6195,7 +6197,7 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.13",
+ "syn 2.0.14",
 ]
 
 [[package]]

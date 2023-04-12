@@ -1,12 +1,13 @@
-use crate::account;
+use crate::{account, model::dao::Quarter};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
-use wetee_runtime::{Runtime, RuntimeCall, Signature, WeteeDaoCall};
+use wetee_dao::QuarterTask;
+use wetee_runtime::{AccountId, Runtime, RuntimeCall, Signature, WeteeDaoCall};
 
 use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 
-/// 账户
+/// DAO 模块
 pub struct WeteeDAO {
     pub base: BaseHander,
 }
@@ -18,14 +19,14 @@ impl WeteeDAO {
         }
     }
 
-    pub fn nex_dao_id(&mut self) -> anyhow::Result<u64, anyhow::Error> {
+    pub fn next_dao_id(&mut self) -> anyhow::Result<u64, anyhow::Error> {
         let api = self.base.get_client()?;
 
         // 构建请求
         let result: u64 = api
             .get_storage_value("WeteeDAO", "NextDaoId", None)
             .unwrap()
-            .unwrap_or_else(|| 1);
+            .unwrap_or_else(|| 5000);
 
         Ok(result)
     }
@@ -68,6 +69,29 @@ impl WeteeDAO {
                 return Err(anyhow::anyhow!(string_error));
             }
         };
+    }
+
+    pub fn roadmap_list(
+        &mut self,
+        dao_id: u64,
+        year: u32,
+    ) -> anyhow::Result<Vec<Quarter>, anyhow::Error> {
+        let api = self.base.get_client()?;
+        let mut results = vec![];
+        for quarter in 1..5 {
+            let tasks: Vec<QuarterTask<AccountId>> = api
+                .get_storage_double_map("WeteeDAO", "RoadMaps", dao_id, year * 100 + quarter, None)
+                .unwrap()
+                .unwrap_or_else(|| vec![]);
+
+            results.push(Quarter {
+                year,
+                quarter,
+                tasks,
+            });
+        }
+
+        Ok(results)
     }
 }
 

@@ -32,7 +32,7 @@ impl Client {
         Ok(url.clone())
     }
 
-    pub async fn get_block_number(&mut self) -> Result<(u32, String), anyhow::Error> {
+    pub async fn get_block_number(&mut self) -> Result<(u64, String), anyhow::Error> {
         // 获取区块链接口
         // let api = self.get_api().await?;
         let apis = API_POOL.lock().unwrap();

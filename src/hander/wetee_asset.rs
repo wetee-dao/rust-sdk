@@ -31,10 +31,7 @@ impl WeteeAsset {
         let balance: AssetAccountData<u128> = api
             .get_storage_double_map("Tokens", "Accounts", v, dao_id, None)
             .unwrap()
-            .unwrap();
-
-        println!("[+] balance's Free Balance is is {}\n", balance.free);
-        println!("{}", balance.free);
+            .unwrap_or_default();
 
         Ok(balance)
     }
