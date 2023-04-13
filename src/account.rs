@@ -144,6 +144,12 @@ pub fn get_from_ss58(ss58: String) -> anyhow::Result<Pair, AccountError> {
     Ok(pair.clone())
 }
 
+// 获取账户
+pub fn address_to_ss58(address: String, prefix: u16) -> anyhow::Result<String, AccountError> {
+    let public_key = Public::from_string(&address).unwrap();
+    Ok(public_key.to_ss58check_with_version(Ss58AddressFormat::custom(prefix)))
+}
+
 // 添加账户
 pub fn add_keyring_from_seed(seed_str: String) -> anyhow::Result<(String, String), AccountError> {
     // 助记词换账户
