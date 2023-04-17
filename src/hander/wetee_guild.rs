@@ -1,7 +1,8 @@
 use crate::account;
+use crate::model::dao::WithGov;
 
-use super::super::client::Client;
 use super::base_hander::BaseHander;
+use super::{super::client::Client, wetee_gov::run_sudo_or_gov};
 use wetee_dao::GuildInfo;
 use wetee_runtime::{AccountId, BlockNumber, Runtime, RuntimeCall, Signature, WeteeGuildCall};
 
@@ -57,6 +58,7 @@ impl WeteeGuild {
         name: String,
         desc: String,
         meta_data: String,
+        ext: Option<WithGov>,
     ) -> anyhow::Result<(), anyhow::Error> {
         let mut api = self.base.get_client()?;
 
@@ -70,6 +72,11 @@ impl WeteeGuild {
             meta_data: meta_data.into(),
             dao_id,
         });
+
+        if ext.is_some() {
+            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
+        }
+
         let signer_nonce = api.get_nonce().unwrap();
         let xt = api.compose_extrinsic_offline(call, signer_nonce);
 

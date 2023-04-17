@@ -53,6 +53,7 @@ wetee-runtime = { git = "https://github.com/WeteeDAO/wetee" }
 wetee-assets = { git = "https://github.com/WeteeDAO/wetee" }
 wetee-dao = { git = "https://github.com/WeteeDAO/wetee" }
 wetee-project = { git = "https://github.com/WeteeDAO/wetee" }
+wetee-gov = { git = "https://github.com/WeteeDAO/wetee" }
 
 [profile.release]
 opt-level = 3

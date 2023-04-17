@@ -12,3 +12,13 @@ pub struct Quarter {
     // 任务
     pub tasks: Vec<QuarterTask<AccountId>>,
 }
+
+/// vote yes or no
+/// 投票
+#[derive(Encode, Decode, Clone, PartialEq, Eq, Default, Debug)]
+pub struct WithGov {
+    // 1 => gov
+    // 2 => sudo
+    pub run_type: u8,
+    pub amount: u128,
+}

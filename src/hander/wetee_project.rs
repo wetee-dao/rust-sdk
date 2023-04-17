@@ -1,7 +1,8 @@
-use crate::account;
+use crate::model::dao::WithGov;
+use crate::{account, Client};
 
-use super::super::client::Client;
 use super::base_hander::BaseHander;
+use super::wetee_gov::run_sudo_or_gov;
 use sp_core::{crypto::Ss58Codec, sr25519::Public};
 use wetee_project::ProjectInfo;
 use wetee_runtime::{AccountId, Runtime, RuntimeCall, Signature, WeteeProjectCall};
@@ -35,12 +36,14 @@ impl WeteeProject {
         Ok(result)
     }
 
+    // 创建项目
     pub fn create_project(
         &mut self,
         from: String,
         dao_id: u64,
         name: String,
-        description: String,
+        desc: String,
+        ext: Option<WithGov>,
     ) -> anyhow::Result<(), anyhow::Error> {
         let mut api = self.base.get_client()?;
 
@@ -50,10 +53,15 @@ impl WeteeProject {
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::create_project {
             name: name.into(),
-            description: description.into(),
+            description: desc.into(),
             dao_id,
             creator: AccountId::from(Public::from_string(&from).unwrap()),
         });
+
+        if ext.is_some() {
+            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
+        }
+
         let signer_nonce = api.get_nonce().unwrap();
         let xt = api.compose_extrinsic_offline(call, signer_nonce);
 

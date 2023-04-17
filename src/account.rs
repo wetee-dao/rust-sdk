@@ -150,6 +150,13 @@ pub fn address_to_ss58(address: String, prefix: u16) -> anyhow::Result<String, A
     Ok(public_key.to_ss58check_with_version(Ss58AddressFormat::custom(prefix)))
 }
 
+// 获取账户
+pub fn ss58_to_address(address: String) -> anyhow::Result<String, AccountError> {
+    let public_key = Public::from_ss58check(&address).unwrap();
+    let address = format_public_key::<Pair>(public_key.clone());
+    Ok(address)
+}
+
 // 添加账户
 pub fn add_keyring_from_seed(seed_str: String) -> anyhow::Result<(String, String), AccountError> {
     // 助记词换账户

@@ -3,7 +3,7 @@ use crate::{account, model::dao::Quarter};
 use super::super::client::Client;
 use super::base_hander::BaseHander;
 use wetee_dao::QuarterTask;
-use wetee_runtime::{AccountId, Runtime, RuntimeCall, Signature, WeteeDaoCall};
+use wetee_runtime::{AccountId, Runtime, RuntimeCall, Signature, WeteeAssetsCall, WeteeDaoCall};
 
 use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 
@@ -19,6 +19,7 @@ impl WeteeDAO {
         }
     }
 
+    // 下一个 DAO ID
     pub fn next_dao_id(&mut self) -> anyhow::Result<u64, anyhow::Error> {
         let api = self.base.get_client()?;
 
@@ -31,6 +32,7 @@ impl WeteeDAO {
         Ok(result)
     }
 
+    // 创建 DAO
     pub fn create_dao(
         &mut self,
         from: String,
@@ -71,6 +73,60 @@ impl WeteeDAO {
         };
     }
 
+    pub fn member_list(&mut self, dao_id: u64) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let result: Vec<AccountId> = api
+            .get_storage_map("WeteeDAO", "Members", dao_id, None)
+            .unwrap()
+            .unwrap_or_else(|| vec![]);
+
+        Ok(result)
+    }
+
+    // 加入 DAO
+    pub fn join(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        share_expect: u32,
+        value: u64,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeAsset(WeteeAssetsCall::join_request {
+            dao_id,
+            share_expect: share_expect,
+            existenial_deposit: value.into(),
+        });
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
+    // DAO 里程碑
     pub fn roadmap_list(
         &mut self,
         dao_id: u64,
@@ -94,6 +150,7 @@ impl WeteeDAO {
         Ok(results)
     }
 
+    //
     pub fn create_task(
         &mut self,
         from: String,
@@ -101,7 +158,6 @@ impl WeteeDAO {
         roadmap_id: u32,
         name: Vec<u8>,
         priority: u8,
-        description: Vec<u8>,
         tags: Option<Vec<u8>>,
     ) -> anyhow::Result<(), anyhow::Error> {
         let mut api = self.base.get_client()?;
@@ -116,7 +172,6 @@ impl WeteeDAO {
             roadmap_id,
             name,
             priority,
-            description,
             tags,
         });
         let xt = api.compose_extrinsic_offline(call, signer_nonce);

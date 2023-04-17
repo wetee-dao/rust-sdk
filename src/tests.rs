@@ -12,8 +12,10 @@ use crate::hander::balance::Balance;
 use crate::hander::wetee_app::Wetee;
 use crate::hander::wetee_asset::WeteeAsset;
 use crate::hander::wetee_dao::WeteeDAO;
+use crate::hander::wetee_gov::WeteeGov;
 use crate::hander::wetee_guild::WeteeGuild;
 use crate::hander::wetee_project::WeteeProject;
+use crate::model::dao::WithGov;
 
 use super::*;
 const SEED: &str = "gloom album notable jewel divorce never trouble lesson month neck sign harbor";
@@ -154,14 +156,33 @@ async fn test_dao_roadmap() {
 
 #[tokio::test]
 async fn test_dao_projects() {
+    let (address, ss58address) = account::add_keyring_from_seed(SEED.into()).unwrap();
+    println!("address {:?}", ss58address);
+
     // 创建连接
     let client = Client::new(URL.to_string()).unwrap();
 
-    let mut dao = WeteeProject::new(client);
+    let mut dao = WeteeProject::new(client.clone());
     let dao_id = DAO_ID.get().unwrap();
     let ps = dao.project_list(*dao_id).unwrap();
+    println!("项目列表 => {:?}", ps);
 
-    println!("ps => {:?}", ps);
+    dao.create_project(
+        address.clone(),
+        dao_id.clone(),
+        "test".to_string(),
+        "test".to_string(),
+        Some(WithGov {
+            run_type: 1,
+            amount: 10,
+        }),
+    )
+    .unwrap();
+
+    let mut gov = WeteeGov::new(client.clone());
+
+    let props = gov.public_props(dao_id.clone()).unwrap();
+    println!("待开始投票 => {:?}", props);
 }
 
 // #[tokio::test]

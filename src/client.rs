@@ -27,6 +27,9 @@ impl Client {
 
     pub fn get_url(&mut self) -> anyhow::Result<String, anyhow::Error> {
         let apis = API_POOL.lock().unwrap();
+        if (self.index as usize) >= apis.len() {
+            return Err(anyhow::anyhow!("index out of range"));
+        }
         let url = apis.get(self.index as usize).unwrap();
 
         Ok(url.clone())
