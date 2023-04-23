@@ -75,8 +75,8 @@ async fn test_blance() {
     balance
         .transfer(
             address,
-            "0x7cada500b9cc0f99ab1b73e96827fa4c08df23087452f81041361045f70ba254".to_string(),
-            1000,
+            "0x7e5221ab36e1d1214b24a2b1975603fe566c94828571775a49d8ca94c773f513".to_string(),
+            10000000000000,
         )
         .unwrap();
 }
@@ -181,8 +181,34 @@ async fn test_dao_projects() {
 
     let mut gov = WeteeGov::new(client.clone());
 
-    let props = gov.public_props(dao_id.clone()).unwrap();
+    gov.set_runment_period(
+        address.clone(),
+        dao_id.clone(),
+        20,
+        Some(WithGov {
+            run_type: 2,
+            amount: 0,
+        }),
+    )
+    .unwrap();
+
+    gov.set_voting_period(
+        address.clone(),
+        dao_id.clone(),
+        20,
+        Some(WithGov {
+            run_type: 2,
+            amount: 0,
+        }),
+    )
+    .unwrap();
+
+    let props = gov.pending_referendum_list(dao_id.clone()).unwrap();
     println!("待开始投票 => {:?}", props);
+
+    gov.referendum_list(5000).unwrap();
+
+    gov.votes_of_user(address.clone(), dao_id.clone()).unwrap();
 }
 
 // #[tokio::test]

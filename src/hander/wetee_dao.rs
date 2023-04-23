@@ -194,6 +194,18 @@ impl WeteeDAO {
             }
         };
     }
+
+    // DAO 发行货币总量
+    pub fn total_issuance(&mut self, dao_id: u64) -> anyhow::Result<u128, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        let result: u128 = api
+            .get_storage_map("Tokens", "TotalIssuance", dao_id, None)
+            .unwrap()
+            .unwrap_or_else(|| 0);
+
+        Ok(result)
+    }
 }
 
 // // 等待区块确认

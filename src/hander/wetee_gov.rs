@@ -1,15 +1,18 @@
-use crate::{model::dao::WithGov, Client};
-
+use super::base_hander::BaseHander;
+use crate::{account, model::dao::WithGov, Client};
 use codec::Compact;
-use sp_core::sr25519;
+use sp_core::{crypto::Ss58Codec, sr25519};
 use substrate_api_client::{
     compose_extrinsic, rpc::WsRpcClient, Api, ExtrinsicSigner, GetStorage, PlainTipExtrinsicParams,
     SubmitAndWatchUntilSuccess,
 };
 pub use wetee_gov::MemmberData;
-use wetee_runtime::{AccountId, Hash, Runtime, RuntimeCall, Signature};
-
-use super::base_hander::BaseHander;
+pub use wetee_gov::{Opinion, Referendum, ReferendumStatus};
+use wetee_gov::{ReferendumIndex, VoteInfo};
+pub use wetee_runtime::Pledge;
+use wetee_runtime::{
+    AccountId, Balance, BlockNumber, Hash, Runtime, RuntimeCall, Signature, WeteeGovCall,
+};
 
 // 通过 sudo 或者 gov 执行区块链函数
 pub fn run_sudo_or_gov(
@@ -29,7 +32,7 @@ pub fn run_sudo_or_gov(
             "WeteeGov",
             "create_propose",
             dao_id,
-            MemmberData::<u64>::GLOBAL,
+            MemmberData::GLOBAL,
             call,
             Compact(param.amount)
         );
@@ -68,49 +71,298 @@ impl WeteeGov {
     }
 
     // 待开始的投票
-    pub fn public_props(
+    pub fn pending_referendum_list(
         &mut self,
         dao_id: u64,
-    ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData<u64>, AccountId)>, anyhow::Error>
-    {
+    ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)>, anyhow::Error> {
         let api = self.base.get_client()?;
 
-        let result: Vec<(u32, Hash, RuntimeCall, MemmberData<u64>, AccountId)> = api
+        let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = api
             .get_storage_map("WeteeGov", "PublicProps", dao_id, None)
             .unwrap()
             .unwrap_or_else(|| vec![]);
-
         Ok(result)
     }
 
+    // 开始一个投票
+    pub fn start_referendum(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        propose_index: u32,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::start_referendum {
+            dao_id,
+            propose_index,
+        });
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
     // 获取正在投票的项目
-    // pub fn referendum_info(
-    //     &mut self,
-    //     dao_id: u64,
-    //     referendum_index: u32,
-    // ) -> anyhow::Result<(Hash, RuntimeCall, MemmberData<u64>, AccountId), anyhow::Error> {
-    //     let api = self.base.get_client()?;
+    pub fn referendum_list(
+        &mut self,
+        dao_id: u64,
+    ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
+    {
+        let api = self.base.get_client()?;
 
-    //     let result: (Hash, RuntimeCall, MemmberData<u64>, AccountId) = api
-    //         .get_storage_map(
-    //             "WeteeGov",
-    //             "ReferendumInfoOf",
-    //             (dao_id, referendum_index),
-    //             None,
-    //         )
-    //         .unwrap()
-    //         .unwrap_or_else(|| {
-    //             (
-    //                 Hash::default(),
-    //                 RuntimeCall::default(),
-    //                 MemmberData::<u64>::default(),
-    //                 AccountId::default(),
-    //             )
-    //         });
+        let key = api
+            .get_storage_double_map_key_prefix("WeteeGov", "ReferendumInfoOf", dao_id)
+            .unwrap();
 
-    //     Ok(result)
-    // }
+        let storage_keys = api
+            .get_storage_keys_paged(Some(key), 1000, None, None)
+            .unwrap();
+
+        let mut results: Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)> = vec![];
+        for storage_key in storage_keys.iter() {
+            let storage_data: Referendum<BlockNumber, RuntimeCall, Balance> = api
+                .get_storage_by_key_hash(storage_key.clone(), None)
+                .unwrap()
+                .unwrap();
+            let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
+            results.push((hash, storage_data));
+        }
+
+        Ok(results)
+    }
+
+    // 投票
+    pub fn vote_for_referendum(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        referendum_index: u32,
+        vote: u64,
+        opinion: bool,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::vote_for_referendum {
+            dao_id,
+            referendum_index,
+            pledge: Pledge::FungToken(vote.into()),
+            opinion: if opinion { Opinion::YES } else { Opinion::NO },
+        });
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
+    // 获取投票结果
+    pub fn votes_of_user(
+        &mut self,
+        from: String,
+        dao_id: u64,
+    ) -> anyhow::Result<
+        Vec<VoteInfo<u64, Pledge<Balance>, BlockNumber, Balance, Opinion, ReferendumIndex>>,
+        anyhow::Error,
+    > {
+        let api = self.base.get_client()?;
+        let dest = sr25519::Public::from_string(&from).unwrap();
+
+        let result: Vec<
+            VoteInfo<u64, Pledge<Balance>, BlockNumber, Balance, Opinion, ReferendumIndex>,
+        > = api
+            .get_storage_map("WeteeGov", "VotesOf", dest, None)
+            .unwrap()
+            .unwrap_or_default();
+
+        Ok(result.into_iter().filter(|x| x.dao_id == dao_id).collect())
+    }
+
+    pub fn run_proposal(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        id: u32,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::run_proposal { dao_id, index: id });
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
+    pub fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::unlock { dao_id });
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
+    pub fn set_voting_period(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        period: u64,
+        ext: Option<WithGov>,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_voting_period { dao_id, period });
+        if ext.is_some() {
+            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
+        }
+
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
+    pub fn set_runment_period(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        period: u64,
+        ext: Option<WithGov>,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let mut api = self.base.get_client()?;
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构建请求
+        let signer_nonce = api.get_nonce().unwrap();
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_runment_period { dao_id, period });
+        if ext.is_some() {
+            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
+        }
+
+        let xt = api.compose_extrinsic_offline(call, signer_nonce);
+
+        // 发送请求
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
 }
+
 // // 等待区块确认
 // loop {
 //     let mut goto = true;

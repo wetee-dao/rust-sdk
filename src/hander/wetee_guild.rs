@@ -98,4 +98,21 @@ impl WeteeGuild {
             }
         };
     }
+
+    // 成员列表
+    pub fn member_list(
+        &mut self,
+        dao_id: u64,
+        guild_id: u64,
+    ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let result: Vec<AccountId> = api
+            .get_storage_double_map("WeteeDAO", "GuildMembers", dao_id, guild_id, None)
+            .unwrap()
+            .unwrap_or_else(|| vec![]);
+
+        Ok(result)
+    }
 }
