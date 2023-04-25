@@ -2,8 +2,12 @@ use crate::{account, model::dao::Quarter};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
-use wetee_dao::QuarterTask;
-use wetee_runtime::{AccountId, Runtime, RuntimeCall, Signature, WeteeAssetsCall, WeteeDaoCall};
+use sp_core::{crypto::Ss58Codec, sr25519};
+use sp_runtime::AccountId32;
+pub use wetee_dao::{DaoInfo, QuarterTask, Status};
+use wetee_runtime::{
+    AccountId, BlockNumber, Runtime, RuntimeCall, Signature, WeteeAssetsCall, WeteeDaoCall,
+};
 
 use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 
@@ -85,6 +89,38 @@ impl WeteeDAO {
         Ok(result)
     }
 
+    pub fn member_point(
+        &mut self,
+        dao_id: u64,
+        member: String,
+    ) -> anyhow::Result<u32, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let who: AccountId32 = sr25519::Public::from_string(&member).unwrap().into();
+        let result: u32 = api
+            .get_storage_double_map("WeteeDAO", "MemberPoint", dao_id, who, None)
+            .unwrap()
+            .unwrap_or_else(|| 0);
+
+        Ok(result)
+    }
+
+    pub fn dao_info(
+        &mut self,
+        dao_id: u64,
+    ) -> anyhow::Result<DaoInfo<AccountId, BlockNumber>, anyhow::Error> {
+        let api = self.base.get_client()?;
+
+        // 构建请求
+        let result: DaoInfo<AccountId, BlockNumber> = api
+            .get_storage_map("WeteeDAO", "Daos", dao_id, None)
+            .unwrap()
+            .unwrap();
+
+        Ok(result)
+    }
+
     // 加入 DAO
     pub fn join(
         &mut self,
@@ -102,7 +138,7 @@ impl WeteeDAO {
         let signer_nonce = api.get_nonce().unwrap();
         let call = RuntimeCall::WeteeAsset(WeteeAssetsCall::join_request {
             dao_id,
-            share_expect: share_expect,
+            share_expect,
             existenial_deposit: value.into(),
         });
         let xt = api.compose_extrinsic_offline(call, signer_nonce);

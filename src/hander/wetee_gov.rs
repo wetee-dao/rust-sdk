@@ -6,8 +6,7 @@ use substrate_api_client::{
     compose_extrinsic, rpc::WsRpcClient, Api, ExtrinsicSigner, GetStorage, PlainTipExtrinsicParams,
     SubmitAndWatchUntilSuccess,
 };
-pub use wetee_gov::MemmberData;
-pub use wetee_gov::{Opinion, Referendum, ReferendumStatus};
+pub use wetee_gov::{MemmberData, Opinion, Referendum, ReferendumStatus};
 use wetee_gov::{ReferendumIndex, VoteInfo};
 pub use wetee_runtime::Pledge;
 use wetee_runtime::{
@@ -32,7 +31,7 @@ pub fn run_sudo_or_gov(
             "WeteeGov",
             "create_propose",
             dao_id,
-            MemmberData::GLOBAL,
+            param.member,
             call,
             Compact(param.amount)
         );
@@ -89,7 +88,7 @@ impl WeteeGov {
         &mut self,
         from: String,
         dao_id: u64,
-        propose_index: u32,
+        propose_id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
         let mut api = self.base.get_client()?;
 
@@ -98,10 +97,7 @@ impl WeteeGov {
 
         // 构建请求
         let signer_nonce = api.get_nonce().unwrap();
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::start_referendum {
-            dao_id,
-            propose_index,
-        });
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::start_referendum { dao_id, propose_id });
         let xt = api.compose_extrinsic_offline(call, signer_nonce);
 
         // 发送请求

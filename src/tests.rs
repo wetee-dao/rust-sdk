@@ -175,6 +175,7 @@ async fn test_dao_projects() {
         Some(WithGov {
             run_type: 1,
             amount: 10,
+            member: wetee_gov::MemmberData::GLOBAL,
         }),
     )
     .unwrap();
@@ -188,6 +189,7 @@ async fn test_dao_projects() {
         Some(WithGov {
             run_type: 2,
             amount: 0,
+            member: wetee_gov::MemmberData::GLOBAL,
         }),
     )
     .unwrap();
@@ -199,6 +201,7 @@ async fn test_dao_projects() {
         Some(WithGov {
             run_type: 2,
             amount: 0,
+            member: wetee_gov::MemmberData::GLOBAL,
         }),
     )
     .unwrap();
