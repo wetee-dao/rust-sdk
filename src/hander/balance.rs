@@ -2,7 +2,7 @@ use crate::{account, model::account::AssetAccountData};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
-use sp_core::{crypto::Ss58Codec, sr25519};
+use sp_core::{crypto::Ss58Codec, sr25519, Pair};
 use sp_runtime::MultiAddress;
 use substrate_api_client::{
     extrinsic::BalancesExtrinsics, ExtrinsicSigner, GetAccountInformation,
@@ -49,6 +49,43 @@ impl Balance {
 
         let from_pair = account::get_from_address(from.clone()).unwrap();
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
+        // 构造请求
+        let dest = sr25519::Public::from_string(&to).unwrap();
+        let xt = api.balance_transfer(MultiAddress::Id(dest.into()), amount);
+        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
+
+        match result {
+            Ok(report) => {
+                println!(
+                    "[+] Extrinsic got included in block {:?}",
+                    report.block_hash
+                );
+                return Ok(());
+            }
+            Err(e) => {
+                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
+                let string_error = format!("{:?}", e);
+                return Err(anyhow::anyhow!(string_error));
+            }
+        };
+    }
+
+    pub fn init_from_pair(
+        &mut self,
+        to: String,
+        amount: u128,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        let alice: sr25519::Pair = Pair::from_string(
+            "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a",
+            None,
+        )
+        .unwrap();
+        println!("signer account: {}", alice.public().to_ss58check());
+
+        // Initialize api and set the signer (sender) that is used to sign the extrinsics.
+        let mut api = self.base.get_client()?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(alice.clone()));
 
         // 构造请求
         let dest = sr25519::Public::from_string(&to).unwrap();

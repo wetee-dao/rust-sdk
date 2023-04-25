@@ -72,11 +72,14 @@ async fn test_blance() {
     let mut balance = Balance::new(client.clone());
     balance.balance(address.clone()).unwrap();
 
+    let util: u128 = 1000000000000;
     balance
-        .transfer(
-            address,
+        .init_from_pair(address.clone(), 1000 * util)
+        .unwrap();
+    balance
+        .init_from_pair(
             "0x7e5221ab36e1d1214b24a2b1975603fe566c94828571775a49d8ca94c773f513".to_string(),
-            10000000000000,
+            1000 * util,
         )
         .unwrap();
 }
@@ -95,8 +98,8 @@ async fn test_dao() {
 
     dao.create_dao(
         address.clone(),
-        "test".to_string(),
-        "为了成功".to_string(),
+        "WeteeDAO".to_string(),
+        "For the freedom of programming".to_string(),
         "{}".to_string(),
     )
     .unwrap();
