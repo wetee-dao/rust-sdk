@@ -1,4 +1,4 @@
-use crate::chain::API_POOL_NEW;
+use crate::chain::API_CLIENT_POOL;
 use crate::model::dao::WithGov;
 use crate::{account, Client};
 
@@ -30,8 +30,8 @@ impl WeteeProject {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<ProjectInfo<AccountId>>, anyhow::Error> {
-        let pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get(self.base.client.index).unwrap();
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         // 构建请求
         let result: Vec<ProjectInfo<AccountId>> = api
@@ -63,8 +63,8 @@ impl WeteeProject {
             return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
         }
 
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -110,8 +110,8 @@ impl WeteeProject {
             return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
         }
 
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -144,9 +144,8 @@ impl WeteeProject {
         dao_id: u64,
         project_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
-        let pool = API_POOL_NEW.lock().unwrap();
- let api =  pool.get(self.base.client.index).unwrap();
-
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         // 构建请求
         let result: Vec<AccountId> = api
@@ -162,9 +161,8 @@ impl WeteeProject {
         &mut self,
         project_id: u64,
     ) -> anyhow::Result<Vec<TaskInfo<AccountId, Balance>>, anyhow::Error> {
-        let pool = API_POOL_NEW.lock().unwrap();
- let api =  pool.get(self.base.client.index).unwrap();
-
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         // 构建请求
         let result: Vec<TaskInfo<AccountId, Balance>> = api
@@ -180,9 +178,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<TaskInfo<AccountId, Balance>, anyhow::Error> {
-        let pool = API_POOL_NEW.lock().unwrap();
- let api =  pool.get(self.base.client.index).unwrap();
-
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         // 构建请求
         let result: Vec<TaskInfo<AccountId, Balance>> = api
@@ -212,9 +209,8 @@ impl WeteeProject {
         max_assignee: Option<u8>,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
-
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -283,8 +279,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -325,8 +321,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -368,8 +364,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -411,8 +407,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -454,8 +450,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -497,8 +493,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -540,8 +536,8 @@ impl WeteeProject {
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -584,8 +580,8 @@ impl WeteeProject {
         approve: bool,
         meta: String,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -644,8 +640,8 @@ impl WeteeProject {
             return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
         }
 
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));

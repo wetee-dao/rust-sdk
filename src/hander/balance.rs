@@ -1,4 +1,4 @@
-use crate::{account, model::account::AssetAccountData, chain::API_POOL_NEW};
+use crate::{account, chain::API_CLIENT_POOL, model::account::AssetAccountData};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
@@ -26,8 +26,8 @@ impl Balance {
         &mut self,
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
-        let pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get(self.base.client.index).unwrap();
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         let v = sr25519::Public::from_string(&address).unwrap();
         let balance = api.get_account_data(&v.into()).unwrap().unwrap_or_default();
@@ -46,8 +46,8 @@ impl Balance {
         to: String,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone()).unwrap();
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -86,8 +86,8 @@ impl Balance {
         println!("signer account: {}", alice.public().to_ss58check());
 
         // Initialize api and set the signer (sender) that is used to sign the extrinsics.
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(alice.clone()));
 
         // 构造请求

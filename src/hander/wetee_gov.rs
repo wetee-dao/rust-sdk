@@ -1,10 +1,9 @@
 use super::base_hander::BaseHander;
-use crate::{account, model::dao::WithGov, Client, chain::API_POOL_NEW};
+use crate::{account, chain::API_CLIENT_POOL, model::dao::WithGov, Client};
 use codec::Compact;
 use sp_core::{crypto::Ss58Codec, sr25519};
 use substrate_api_client::{
-    compose_extrinsic, ExtrinsicSigner, GetStorage,
-    SubmitAndWatchUntilSuccess,
+    compose_extrinsic, ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess,
 };
 pub use wetee_gov::{MemmberData, Opinion, Referendum, ReferendumStatus};
 use wetee_gov::{ReferendumIndex, VoteInfo};
@@ -21,8 +20,8 @@ pub fn run_sudo_or_gov(
     call: RuntimeCall,
     param: WithGov,
 ) -> anyhow::Result<(), anyhow::Error> {
-    let mut pool = API_POOL_NEW.lock().unwrap();
-    let api =  pool.get_mut(client_id).unwrap();
+    let mut pool = API_CLIENT_POOL.lock().unwrap();
+    let api = pool.get_mut(client_id).unwrap();
 
     let from_pair = account::get_from_address(from.clone())?;
     api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -76,8 +75,8 @@ impl WeteeGov {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)>, anyhow::Error> {
-        let pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get(self.base.client.index).unwrap();
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = api
             .get_storage_map("WeteeGov", "PublicProps", dao_id, None)
@@ -93,8 +92,8 @@ impl WeteeGov {
         dao_id: u64,
         propose_id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -129,8 +128,8 @@ impl WeteeGov {
         dao_id: u64,
     ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
     {
-        let pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get(self.base.client.index).unwrap();
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         let key = api
             .get_storage_double_map_key_prefix("WeteeGov", "ReferendumInfoOf", dao_id)
@@ -162,8 +161,8 @@ impl WeteeGov {
         vote: u64,
         opinion: bool,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -206,8 +205,8 @@ impl WeteeGov {
         Vec<VoteInfo<u64, Pledge<Balance>, BlockNumber, Balance, Opinion, ReferendumIndex>>,
         anyhow::Error,
     > {
-        let pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get(self.base.client.index).unwrap();
+        let pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get(self.base.client.index).unwrap();
 
         let dest = sr25519::Public::from_string(&from).unwrap();
 
@@ -227,8 +226,8 @@ impl WeteeGov {
         dao_id: u64,
         id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -258,8 +257,8 @@ impl WeteeGov {
     }
 
     pub fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -300,8 +299,8 @@ impl WeteeGov {
             return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
         }
 
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -342,8 +341,8 @@ impl WeteeGov {
             return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
         }
 
-        let mut pool = API_POOL_NEW.lock().unwrap();
-        let api =  pool.get_mut(self.base.client.index).unwrap();
+        let mut pool = API_CLIENT_POOL.lock().unwrap();
+        let api = pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
