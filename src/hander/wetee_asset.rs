@@ -1,4 +1,4 @@
-use crate::{account, model::account::AssetAccountData};
+use crate::{account, model::account::AssetAccountData, chain::API_POOL_NEW};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
@@ -25,7 +25,8 @@ impl WeteeAsset {
         dao_id: u64,
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
 
         let v = sr25519::Public::from_string(&address).unwrap();
         let balance: AssetAccountData<u128> = api
@@ -45,7 +46,8 @@ impl WeteeAsset {
         amount: u128,
         init_dao_asset: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -89,7 +91,8 @@ impl WeteeAsset {
         dao_id: u64,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -127,7 +130,8 @@ impl WeteeAsset {
         dao_id: u64,
         metadata: wetee_assets::DaoAssetMeta,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -162,7 +166,8 @@ impl WeteeAsset {
         dao_id: u64,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -198,7 +203,8 @@ impl WeteeAsset {
         to: String,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -239,7 +245,8 @@ impl WeteeAsset {
         share_expect: u32,
         existenial_deposit: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));

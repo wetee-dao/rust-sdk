@@ -3,26 +3,25 @@ use sp_core::sr25519;
 use substrate_api_client::{rpc::WsRpcClient, Api, GetHeader, PlainTipExtrinsicParams};
 use wetee_runtime::Runtime;
 
-use crate::chain::*;
+use crate::{chain::*};
 
 /// 区块链连接
 #[derive(Debug, Clone)]
 pub struct Client {
     // u32
-    pub index: u32,
+    pub index: usize,
     // 链接
     // api: Option<String>,
 }
 
 impl Client {
     pub fn new(uri: String) -> anyhow::Result<Self, anyhow::Error> {
-        let i = get_api_index(uri.clone())?;
-
+        let i = get_api(uri.clone())?;
         Ok(Client { index: i })
     }
 
     pub fn from_index(index: u32) -> anyhow::Result<Self, anyhow::Error> {
-        Ok(Client { index })
+        Ok(Client { index: index as usize })
     }
 
     pub fn get_url(&mut self) -> anyhow::Result<String, anyhow::Error> {

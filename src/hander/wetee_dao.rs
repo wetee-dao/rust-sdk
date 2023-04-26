@@ -1,4 +1,4 @@
-use crate::{account, model::dao::Quarter};
+use crate::{account, model::dao::Quarter, chain::API_POOL_NEW};
 
 use super::super::client::Client;
 use super::base_hander::BaseHander;
@@ -25,7 +25,8 @@ impl WeteeDAO {
 
     // 下一个 DAO ID
     pub fn next_dao_id(&mut self) -> anyhow::Result<u64, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
 
         // 构建请求
         let result: u64 = api
@@ -44,7 +45,8 @@ impl WeteeDAO {
         purpose: String,
         meta_data: String,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -78,7 +80,9 @@ impl WeteeDAO {
     }
 
     pub fn member_list(&mut self, dao_id: u64) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
+
 
         // 构建请求
         let result: Vec<AccountId> = api
@@ -94,7 +98,9 @@ impl WeteeDAO {
         dao_id: u64,
         member: String,
     ) -> anyhow::Result<u32, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
+
 
         // 构建请求
         let who: AccountId32 = sr25519::Public::from_string(&member).unwrap().into();
@@ -110,7 +116,9 @@ impl WeteeDAO {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<DaoInfo<AccountId, BlockNumber>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
+
 
         // 构建请求
         let result: DaoInfo<AccountId, BlockNumber> = api
@@ -129,7 +137,8 @@ impl WeteeDAO {
         share_expect: u32,
         value: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -168,7 +177,9 @@ impl WeteeDAO {
         dao_id: u64,
         year: u32,
     ) -> anyhow::Result<Vec<Quarter>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
+
         let mut results = vec![];
         for quarter in 1..5 {
             let tasks: Vec<QuarterTask<AccountId>> = api
@@ -196,7 +207,8 @@ impl WeteeDAO {
         priority: u8,
         tags: Option<Vec<u8>>,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -233,7 +245,8 @@ impl WeteeDAO {
 
     // DAO 发行货币总量
     pub fn total_issuance(&mut self, dao_id: u64) -> anyhow::Result<u128, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
 
         let result: u128 = api
             .get_storage_map("Tokens", "TotalIssuance", dao_id, None)

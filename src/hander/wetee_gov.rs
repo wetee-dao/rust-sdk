@@ -1,9 +1,9 @@
 use super::base_hander::BaseHander;
-use crate::{account, model::dao::WithGov, Client};
+use crate::{account, model::dao::WithGov, Client, chain::API_POOL_NEW};
 use codec::Compact;
 use sp_core::{crypto::Ss58Codec, sr25519};
 use substrate_api_client::{
-    compose_extrinsic, rpc::WsRpcClient, Api, ExtrinsicSigner, GetStorage, PlainTipExtrinsicParams,
+    compose_extrinsic, ExtrinsicSigner, GetStorage,
     SubmitAndWatchUntilSuccess,
 };
 pub use wetee_gov::{MemmberData, Opinion, Referendum, ReferendumStatus};
@@ -15,16 +15,18 @@ use wetee_runtime::{
 
 // 通过 sudo 或者 gov 执行区块链函数
 pub fn run_sudo_or_gov(
-    api: Api<
-        ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-        WsRpcClient,
-        PlainTipExtrinsicParams<Runtime>,
-        Runtime,
-    >,
+    client_id: usize,
+    from: String,
     dao_id: u64,
     call: RuntimeCall,
     param: WithGov,
 ) -> anyhow::Result<(), anyhow::Error> {
+    let mut pool = API_POOL_NEW.lock().unwrap();
+    let api =  pool.get_mut(client_id).unwrap();
+
+    let from_pair = account::get_from_address(from.clone())?;
+    api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+
     let result = if param.run_type == 1 {
         let xt = compose_extrinsic!(
             &api,
@@ -74,7 +76,8 @@ impl WeteeGov {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
 
         let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = api
             .get_storage_map("WeteeGov", "PublicProps", dao_id, None)
@@ -90,7 +93,8 @@ impl WeteeGov {
         dao_id: u64,
         propose_id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -125,7 +129,8 @@ impl WeteeGov {
         dao_id: u64,
     ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
     {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
 
         let key = api
             .get_storage_double_map_key_prefix("WeteeGov", "ReferendumInfoOf", dao_id)
@@ -157,7 +162,8 @@ impl WeteeGov {
         vote: u64,
         opinion: bool,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -200,7 +206,9 @@ impl WeteeGov {
         Vec<VoteInfo<u64, Pledge<Balance>, BlockNumber, Balance, Opinion, ReferendumIndex>>,
         anyhow::Error,
     > {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get(self.base.client.index).unwrap();
+
         let dest = sr25519::Public::from_string(&from).unwrap();
 
         let result: Vec<
@@ -219,7 +227,8 @@ impl WeteeGov {
         dao_id: u64,
         id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -249,7 +258,8 @@ impl WeteeGov {
     }
 
     pub fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
@@ -285,17 +295,19 @@ impl WeteeGov {
         period: u64,
         ext: Option<WithGov>,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_voting_period { dao_id, period });
+        if ext.is_some() {
+            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+        }
+
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
 
         // 构建请求
         let signer_nonce = api.get_nonce().unwrap();
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_voting_period { dao_id, period });
-        if ext.is_some() {
-            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
-        }
 
         let xt = api.compose_extrinsic_offline(call, signer_nonce);
 
@@ -325,17 +337,19 @@ impl WeteeGov {
         period: u64,
         ext: Option<WithGov>,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_runment_period { dao_id, period });
+        if ext.is_some() {
+            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+        }
+
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
 
         let from_pair = account::get_from_address(from.clone())?;
         api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
 
         // 构建请求
         let signer_nonce = api.get_nonce().unwrap();
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_runment_period { dao_id, period });
-        if ext.is_some() {
-            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
-        }
 
         let xt = api.compose_extrinsic_offline(call, signer_nonce);
 

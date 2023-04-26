@@ -1,4 +1,5 @@
 use crate::account;
+use crate::chain::API_POOL_NEW;
 use crate::model::dao::WithGov;
 
 use super::base_hander::BaseHander;
@@ -27,7 +28,9 @@ impl WeteeGuild {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+ let api =  pool.get(self.base.client.index).unwrap();
+
 
         // 构建请求
         let result: Vec<GuildInfo<AccountId, BlockNumber>> = api
@@ -43,7 +46,9 @@ impl WeteeGuild {
         dao_id: u64,
         index: u32,
     ) -> anyhow::Result<GuildInfo<AccountId, BlockNumber>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+ let api =  pool.get(self.base.client.index).unwrap();
+
 
         // 构建请求
         let result: Vec<GuildInfo<AccountId, BlockNumber>> = api
@@ -63,11 +68,6 @@ impl WeteeGuild {
         meta_data: String,
         ext: Option<WithGov>,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let who: AccountId32 = sr25519::Public::from_string(&from).unwrap().into();
         let call = RuntimeCall::WeteeGuild(WeteeGuildCall::create_guild {
@@ -79,8 +79,14 @@ impl WeteeGuild {
         });
 
         if ext.is_some() {
-            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
         }
+
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
 
         let signer_nonce = api.get_nonce().unwrap();
         let xt = api.compose_extrinsic_offline(call, signer_nonce);
@@ -110,7 +116,9 @@ impl WeteeGuild {
         dao_id: u64,
         guild_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
-        let api = self.base.get_client()?;
+        let pool = API_POOL_NEW.lock().unwrap();
+ let api =  pool.get(self.base.client.index).unwrap();
+
 
         // 构建请求
         let result: Vec<AccountId> = api
@@ -128,11 +136,6 @@ impl WeteeGuild {
         guild_id: u64,
         ext: Option<WithGov>,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_client()?;
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let who: AccountId32 = sr25519::Public::from_string(&from).unwrap().into();
         let call = RuntimeCall::WeteeGuild(WeteeGuildCall::guild_join_request {
@@ -140,10 +143,15 @@ impl WeteeGuild {
             guild_id,
             who,
         });
-
         if ext.is_some() {
-            return run_sudo_or_gov(api, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(self.base.client.index,from,dao_id, call, ext.unwrap());
         }
+        
+        let mut pool = API_POOL_NEW.lock().unwrap();
+        let api =  pool.get_mut(self.base.client.index).unwrap();
+
+        let from_pair = account::get_from_address(from.clone())?;
+        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
 
         let signer_nonce = api.get_nonce().unwrap();
         let xt = api.compose_extrinsic_offline(call, signer_nonce);

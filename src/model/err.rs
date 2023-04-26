@@ -15,3 +15,9 @@ pub enum AccountError {
     #[error("InvalidPath: {0}")]
     InvalidPath(String),
 }
+
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
+pub enum ClientError {
+    #[error("InvalidClient: {0}")]
+    InvalidClient(String),
+}
