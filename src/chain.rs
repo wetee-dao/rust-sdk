@@ -12,6 +12,8 @@ pub static KERINGS: Lazy<Mutex<HashMap<String, Pair>>> = Lazy::new(|| {
     Mutex::new(m)
 });
 
+pub const UNIT: u64 = 1_000_000_000_000;
+
 // 全局区块链连接
 pub static API_CLIENT_POOL: Lazy<
     Mutex<
@@ -30,7 +32,6 @@ pub static API_CLIENT_POOL: Lazy<
 pub fn get_api(url: String) -> anyhow::Result<usize, anyhow::Error> {
     // 连接区块链
     let mut _api_box = API_CLIENT_POOL.lock().unwrap();
-    // let mut _api_url_box = API_URL_NEW.lock().unwrap();
 
     // 获取区块链接口
     let client = WsRpcClient::new(&url).unwrap();
@@ -43,8 +44,6 @@ pub fn get_api(url: String) -> anyhow::Result<usize, anyhow::Error> {
     if api.is_err() {
         return Err(anyhow::anyhow!("url is not ok"));
     }
-
-    println!("cleint ok");
 
     _api_box.push(api.unwrap());
 

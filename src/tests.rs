@@ -189,7 +189,7 @@ async fn test_dao_projects() {
     gov.set_runment_period(
         address.clone(),
         dao_id.clone(),
-        20,
+        1,
         Some(WithGov {
             run_type: 2,
             amount: 0,
@@ -201,7 +201,7 @@ async fn test_dao_projects() {
     gov.set_voting_period(
         address.clone(),
         dao_id.clone(),
-        20,
+        1,
         Some(WithGov {
             run_type: 2,
             amount: 0,

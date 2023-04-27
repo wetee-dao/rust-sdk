@@ -7,6 +7,7 @@ use super::wetee_gov::run_sudo_or_gov;
 use sp_core::sr25519;
 use sp_core::{crypto::Ss58Codec, sr25519::Public};
 use sp_runtime::AccountId32;
+use wetee_gov::MemmberData;
 use wetee_project::ReviewOpinion;
 pub use wetee_project::{ProjectInfo, TaskInfo, TaskStatus};
 use wetee_runtime::{AccountId, Balance, Runtime, RuntimeCall, Signature, WeteeProjectCall};
@@ -89,6 +90,34 @@ impl WeteeProject {
                 return Err(anyhow::anyhow!(string_error));
             }
         };
+    }
+
+    pub fn project_join_request_with_root(
+        &mut self,
+        from: String,
+        dao_id: u64,
+        project_id: u64,
+        user: String,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        // 构建请求
+        let who: AccountId32 = sr25519::Public::from_string(&user).unwrap().into();
+        let call = RuntimeCall::WeteeProject(WeteeProjectCall::project_join_request {
+            dao_id,
+            project_id,
+            who,
+        });
+
+        return run_sudo_or_gov(
+            self.base.client.index,
+            from,
+            dao_id,
+            call,
+            WithGov {
+                run_type: 2,
+                amount: 0,
+                member: MemmberData::GLOBAL,
+            },
+        );
     }
 
     pub fn project_join_request(
