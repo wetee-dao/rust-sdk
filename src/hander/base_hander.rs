@@ -14,7 +14,7 @@ impl BaseHander {
     // ) -> anyhow::Result<
     //     Api<
     //         ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-    //         WsRpcClient,
+    //         TungsteniteRpcClient,
     //         PlainTipExtrinsicParams<Runtime>,
     //         Runtime,
     //     >,
@@ -23,10 +23,10 @@ impl BaseHander {
     //     let url = self.client.get_url().unwrap();
 
     //     // 获取区块链接口
-    //     let client = WsRpcClient::new(&url).unwrap();
+    //     let client = TungsteniteRpcClient::new(&url).unwrap();
     //     let api = Api::<
     //         ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-    //         WsRpcClient,
+    //         TungsteniteRpcClient,
     //         PlainTipExtrinsicParams<Runtime>,
     //         Runtime,
     //     >::new(client)

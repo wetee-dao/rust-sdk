@@ -19,7 +19,7 @@ use crate::model::dao::WithGov;
 
 use super::*;
 const SEED: &str = "gloom album notable jewel divorce never trouble lesson month neck sign harbor";
-const URL: &str = "ws://chain-ws.tc.asyou.me";
+const URL: &str = "ws://8.209.103.88:9944";
 pub static DAO_ID: OnceCell<u64> = OnceCell::new();
 
 // #[tokio::test]

@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use sp_core::sr25519::{self, Pair};
 use std::collections::HashMap;
 use std::sync::Mutex;
-use substrate_api_client::rpc::WsRpcClient;
+use substrate_api_client::rpc::TungsteniteRpcClient;
 use substrate_api_client::{Api, ExtrinsicSigner, PlainTipExtrinsicParams};
 use wetee_runtime::{Runtime, Signature};
 
@@ -20,7 +20,7 @@ pub static API_CLIENT_POOL: Lazy<
         Vec<
             Api<
                 ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-                WsRpcClient,
+                TungsteniteRpcClient,
                 PlainTipExtrinsicParams<Runtime>,
                 Runtime,
             >,
@@ -34,10 +34,10 @@ pub fn get_api(url: String) -> anyhow::Result<usize, anyhow::Error> {
     let mut _api_box = API_CLIENT_POOL.lock().unwrap();
 
     // 获取区块链接口
-    let client = WsRpcClient::new(&url).unwrap();
+    let client = TungsteniteRpcClient::new(&url, 100).unwrap();
     let api = Api::<
         ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-        WsRpcClient,
+        TungsteniteRpcClient,
         PlainTipExtrinsicParams<Runtime>,
         Runtime,
     >::new(client);
