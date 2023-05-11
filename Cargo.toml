@@ -41,6 +41,7 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 substrate-api-client = { git = 'https://github.com/WeteeDAO/substrate-api-client', branch = 'polkadot-v0.9.39', features = [
     "std",
     "tungstenite-client",
+    "jsonrpsee-client",
     "staking-xt",
 ] }
 # substrate-api-client = { path = '../substrate-api-client', features = [
