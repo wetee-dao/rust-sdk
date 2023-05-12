@@ -1,7 +1,6 @@
-use crate::chain::API_CLIENT_POOL;
 use crate::model::chain::QueryKey;
 use crate::model::dao::WithGov;
-use crate::{account, Client};
+use crate::{Client};
 
 
 use super::wetee_gov::run_sudo_or_gov;
@@ -11,9 +10,7 @@ use sp_runtime::AccountId32;
 use wetee_gov::MemmberData;
 use wetee_project::ReviewOpinion;
 pub use wetee_project::{ProjectInfo, TaskInfo, TaskStatus};
-use wetee_runtime::{AccountId, Balance, Runtime, RuntimeCall, Signature, WeteeProjectCall};
-
-use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
+use wetee_runtime::{AccountId, Balance, RuntimeCall, WeteeProjectCall};
 
 /// 账户
 pub struct WeteeProject {
@@ -104,6 +101,10 @@ impl WeteeProject {
             project_id,
             who,
         });
+
+        if ext.is_some() {
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
+        }
 
         self.base.send_and_sign(call,from).await
     }
