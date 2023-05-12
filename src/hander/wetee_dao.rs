@@ -1,7 +1,7 @@
 use crate::{account, chain::API_CLIENT_POOL, model::dao::Quarter};
 
 use super::super::client::Client;
-use super::base_hander::BaseHander;
+
 use sp_core::{crypto::Ss58Codec, sr25519};
 use sp_runtime::AccountId32;
 pub use wetee_dao::{DaoInfo, QuarterTask, Status};
@@ -13,14 +13,12 @@ use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSucce
 
 /// DAO 模块
 pub struct WeteeDAO {
-    pub base: BaseHander,
+    pub base: Client,
 }
 
 impl WeteeDAO {
     pub fn new(c: Client) -> Self {
-        Self {
-            base: BaseHander::new(c, false),
-        }
+        Self { base: c }
     }
 
     // 下一个 DAO ID

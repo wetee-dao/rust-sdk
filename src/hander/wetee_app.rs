@@ -1,16 +1,14 @@
-use super::base_hander::BaseHander;
+
 use crate::client::Client;
 
 /// TEE程序
 pub struct Wetee {
-    pub base: BaseHander,
+    pub base: Client,
 }
 
 impl Wetee {
     pub fn new(c: Client) -> Self {
-        Self {
-            base: BaseHander::new(c, false),
-        }
+        Self { base: c }
     }
 
     // pub async fn get_wait_pool(&mut self) -> Result<Vec<MTeeApp>, Box<dyn std::error::Error>> {

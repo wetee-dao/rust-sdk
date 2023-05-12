@@ -2,7 +2,7 @@ use crate::chain::API_CLIENT_POOL;
 use crate::model::dao::WithGov;
 use crate::{account, Client};
 
-use super::base_hander::BaseHander;
+
 use super::wetee_gov::run_sudo_or_gov;
 use sp_core::sr25519;
 use sp_core::{crypto::Ss58Codec, sr25519::Public};
@@ -16,14 +16,12 @@ use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSucce
 
 /// 账户
 pub struct WeteeProject {
-    pub base: BaseHander,
+    pub base: Client,
 }
 
 impl WeteeProject {
     pub fn new(c: Client) -> Self {
-        Self {
-            base: BaseHander::new(c, false),
-        }
+        Self { base: c }
     }
 
     // 项目列表

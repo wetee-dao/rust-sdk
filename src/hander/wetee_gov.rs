@@ -1,4 +1,4 @@
-use super::base_hander::BaseHander;
+
 use crate::{account, chain::API_CLIENT_POOL, model::dao::WithGov, Client};
 use codec::Compact;
 use sp_core::{crypto::Ss58Codec, sr25519};
@@ -60,14 +60,12 @@ pub fn run_sudo_or_gov(
 
 /// DAO 治理模块
 pub struct WeteeGov {
-    pub base: BaseHander,
+    pub base: Client,
 }
 
 impl WeteeGov {
     pub fn new(c: Client) -> Self {
-        Self {
-            base: BaseHander::new(c, false),
-        }
+        Self { base: c }
     }
 
     // 待开始的投票

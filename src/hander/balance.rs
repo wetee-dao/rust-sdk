@@ -1,7 +1,7 @@
 use crate::{account, chain::API_CLIENT_POOL, model::account::AssetAccountData};
 
 use super::super::client::Client;
-use super::base_hander::BaseHander;
+
 use sp_core::{crypto::Ss58Codec, sr25519, Pair};
 use sp_runtime::MultiAddress;
 use substrate_api_client::{
@@ -12,14 +12,12 @@ use wetee_runtime::{Runtime, Signature};
 
 /// 账户
 pub struct Balance {
-    pub base: BaseHander,
+    pub base: Client,
 }
 
 impl Balance {
     pub fn new(c: Client) -> Self {
-        Self {
-            base: BaseHander::new(c, false),
-        }
+        Self { base: c }
     }
 
     pub fn balance(

@@ -1,7 +1,7 @@
 use crate::{account, chain::API_CLIENT_POOL, model::account::AssetAccountData};
 
 use super::super::client::Client;
-use super::base_hander::BaseHander;
+
 use wetee_runtime::{Runtime, RuntimeCall, Signature, WeteeAssetsCall};
 
 use sp_core::{crypto::Ss58Codec, sr25519};
@@ -10,14 +10,12 @@ use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSucce
 
 /// 账户
 pub struct WeteeAsset {
-    pub base: BaseHander,
+    pub base: Client,
 }
 
 impl WeteeAsset {
     pub fn new(c: Client) -> Self {
-        Self {
-            base: BaseHander::new(c, false),
-        }
+        Self { base: c }
     }
 
     pub fn balance(
