@@ -124,7 +124,6 @@ pub fn pair_from_password(
     //     "import Public key:  {}",
     //     format_public_key::<Pair>(public_key.clone())
     // );
-
     Ok(pair)
 }
 
@@ -180,6 +179,21 @@ pub fn add_keyring(
     // 获取账户
     let pair = pair_from_password(keyring, password)?;
 
+    let public_key = pair.public();
+    let address = format_public_key::<Pair>(public_key.clone());
+
+    let mut _key_box = KERINGS.lock().unwrap();
+    _key_box.insert(address.clone(), pair);
+
+    let ss58address = public_key.to_ss58check_with_version(Ss58AddressFormat::custom(42));
+
+    Ok((address, ss58address))
+}
+
+// 添加密码 pair
+pub fn add_pair(
+    pair: Pair,
+) -> anyhow::Result<(String, String), AccountError> {
     let public_key = pair.public();
     let address = format_public_key::<Pair>(public_key.clone());
 

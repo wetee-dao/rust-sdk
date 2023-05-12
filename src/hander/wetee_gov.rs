@@ -1,61 +1,28 @@
 
-use crate::{account, chain::API_CLIENT_POOL, model::dao::WithGov, Client};
-use codec::Compact;
+use crate::{model::{dao::WithGov, chain::QueryKey}, Client};
 use sp_core::{crypto::Ss58Codec, sr25519};
-use substrate_api_client::{
-    compose_extrinsic, ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess,
-};
 pub use wetee_gov::{MemmberData, Opinion, Referendum, ReferendumStatus};
 use wetee_gov::{ReferendumIndex, VoteInfo};
 pub use wetee_runtime::Pledge;
 use wetee_runtime::{
-    AccountId, Balance, BlockNumber, Hash, Runtime, RuntimeCall, Signature, WeteeGovCall,
+    AccountId, Balance, BlockNumber, Hash, RuntimeCall, WeteeGovCall, WeteeSudoCall,
 };
 
 // 通过 sudo 或者 gov 执行区块链函数
-pub fn run_sudo_or_gov(
-    client_id: usize,
+pub async fn run_sudo_or_gov(
+    client: &Client,
     from: String,
     dao_id: u64,
     call: RuntimeCall,
     param: WithGov,
 ) -> anyhow::Result<(), anyhow::Error> {
-    let mut pool = API_CLIENT_POOL.lock().unwrap();
-    let api = pool.get_mut(client_id).unwrap();
-
-    let from_pair = account::get_from_address(from.clone())?;
-    api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-    let result = if param.run_type == 1 {
-        let xt = compose_extrinsic!(
-            &api,
-            "WeteeGov",
-            "create_propose",
-            dao_id,
-            param.member,
-            call,
-            Compact(param.amount)
-        );
-        api.submit_and_watch_extrinsic_until_success(xt, false)
-    } else {
-        let xt = compose_extrinsic!(&api, "WeteeSudo", "sudo", dao_id, call);
-        api.submit_and_watch_extrinsic_until_success(xt, false)
+    let _result = if param.run_type == 1 {
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::create_propose { dao_id: dao_id, member_data: param.member, proposal:Box::new(call), value: param.amount });
+        return client.send_and_sign(call,from).await;
     };
-
-    match result {
-        Ok(report) => {
-            println!(
-                "[+] Extrinsic got included in block {:?}",
-                report.block_hash
-            );
-            return Ok(());
-        }
-        Err(e) => {
-            println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-            let string_error = format!("{:?}", e);
-            return Err(anyhow::anyhow!(string_error));
-        }
-    };
+    let call = RuntimeCall::WeteeSudo(WeteeSudoCall::sudo { dao_id: dao_id, call: Box::new(call)});
+    client.send_and_sign(call,from).await
+    
 }
 
 /// DAO 治理模块
@@ -69,89 +36,56 @@ impl WeteeGov {
     }
 
     // 待开始的投票
-    pub fn pending_referendum_list(
+    pub async fn pending_referendum_list(
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
-        let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = api
-            .get_storage_map("WeteeGov", "PublicProps", dao_id, None)
+        let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = self.base.get_storage_map("WeteeGov", "PublicProps", QueryKey::IntKey(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
         Ok(result)
     }
 
     // 开始一个投票
-    pub fn start_referendum(
+    pub async fn start_referendum(
         &mut self,
         from: String,
         dao_id: u64,
         propose_id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        // 构建请求
-        let signer_nonce = api.get_nonce().unwrap();
         let call = RuntimeCall::WeteeGov(WeteeGovCall::start_referendum { dao_id, propose_id });
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 获取正在投票的项目
-    pub fn referendum_list(
+    pub async fn referendum_list(
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
     {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
+        // let key = api
+        //     .get_storage_double_map_key_prefix("WeteeGov", "ReferendumInfoOf", dao_id)
+        //     .unwrap();
 
-        let key = api
-            .get_storage_double_map_key_prefix("WeteeGov", "ReferendumInfoOf", dao_id)
-            .unwrap();
-
-        let storage_keys = api
-            .get_storage_keys_paged(Some(key), 1000, None, None)
-            .unwrap();
+        // let storage_keys = api
+        //     .get_storage_keys_paged(Some(key), 1000, None, None)
+        //     .unwrap();
 
         let mut results: Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)> = vec![];
-        for storage_key in storage_keys.iter() {
-            let storage_data: Referendum<BlockNumber, RuntimeCall, Balance> = api
-                .get_storage_by_key_hash(storage_key.clone(), None)
-                .unwrap()
-                .unwrap();
-            let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
-            results.push((hash, storage_data));
-        }
+        // for storage_key in storage_keys.iter() {
+        //     let storage_data: Referendum<BlockNumber, RuntimeCall, Balance> = api
+        //         .get_storage_by_key_hash(storage_key.clone(), None)
+        //         .unwrap()
+        //         .unwrap();
+        //     let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
+        //     results.push((hash, storage_data));
+        // }
 
         Ok(results)
     }
 
     // 投票
-    pub fn vote_for_referendum(
+    pub async fn vote_for_referendum(
         &mut self,
         from: String,
         dao_id: u64,
@@ -159,43 +93,17 @@ impl WeteeGov {
         vote: u64,
         opinion: bool,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        // 构建请求
-        let signer_nonce = api.get_nonce().unwrap();
         let call = RuntimeCall::WeteeGov(WeteeGovCall::vote_for_referendum {
             dao_id,
             referendum_index,
             pledge: Pledge::FungToken(vote.into()),
             opinion: if opinion { Opinion::YES } else { Opinion::NO },
         });
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 获取投票结果
-    pub fn votes_of_user(
+    pub async fn votes_of_user(
         &mut self,
         from: String,
         dao_id: u64,
@@ -203,89 +111,33 @@ impl WeteeGov {
         Vec<VoteInfo<u64, Pledge<Balance>, BlockNumber, Balance, Opinion, ReferendumIndex>>,
         anyhow::Error,
     > {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
-        let dest = sr25519::Public::from_string(&from).unwrap();
+        let dest = sr25519::Public::from_string(&from).unwrap().into();
 
         let result: Vec<
             VoteInfo<u64, Pledge<Balance>, BlockNumber, Balance, Opinion, ReferendumIndex>,
-        > = api
-            .get_storage_map("WeteeGov", "VotesOf", dest, None)
+        > = self.base.get_storage_map("WeteeGov", "VotesOf", QueryKey::AccountId(dest)).await
             .unwrap()
             .unwrap_or_default();
 
         Ok(result.into_iter().filter(|x| x.dao_id == dao_id).collect())
     }
 
-    pub fn run_proposal(
+    pub async fn run_proposal(
         &mut self,
         from: String,
         dao_id: u64,
         id: u32,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        // 构建请求
-        let signer_nonce = api.get_nonce().unwrap();
         let call = RuntimeCall::WeteeGov(WeteeGovCall::run_proposal { dao_id, index: id });
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        // 构建请求
-        let signer_nonce = api.get_nonce().unwrap();
+    pub async fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeGov(WeteeGovCall::unlock { dao_id });
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn set_voting_period(
+    pub async fn set_voting_period(
         &mut self,
         from: String,
         dao_id: u64,
@@ -294,40 +146,12 @@ impl WeteeGov {
     ) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeGov(WeteeGovCall::set_voting_period { dao_id, period });
         if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
         }
-
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        // 构建请求
-        let signer_nonce = api.get_nonce().unwrap();
-
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn set_runment_period(
+    pub async fn set_runment_period(
         &mut self,
         from: String,
         dao_id: u64,
@@ -336,37 +160,9 @@ impl WeteeGov {
     ) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeGov(WeteeGovCall::set_runment_period { dao_id, period });
         if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
         }
-
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        // 构建请求
-        let signer_nonce = api.get_nonce().unwrap();
-
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 }
 

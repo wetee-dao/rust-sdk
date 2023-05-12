@@ -1,4 +1,5 @@
 use crate::chain::API_CLIENT_POOL;
+use crate::model::chain::QueryKey;
 use crate::model::dao::WithGov;
 use crate::{account, Client};
 
@@ -25,16 +26,12 @@ impl WeteeProject {
     }
 
     // 项目列表
-    pub fn project_list(
+    pub async fn project_list(
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<ProjectInfo<AccountId>>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
         // 构建请求
-        let result: Vec<ProjectInfo<AccountId>> = api
-            .get_storage_map("WeteeProject", "DaoProjects", dao_id, None)
+        let result: Vec<ProjectInfo<AccountId>> = self.base.get_storage_map("WeteeProject", "DaoProjects", QueryKey::IntKey(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -42,7 +39,7 @@ impl WeteeProject {
     }
 
     // 创建项目
-    pub fn create_project(
+    pub async fn create_project(
         &mut self,
         from: String,
         dao_id: u64,
@@ -59,38 +56,13 @@ impl WeteeProject {
         });
 
         if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
         }
 
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn project_join_request_with_root(
+    pub async fn project_join_request_with_root(
         &mut self,
         from: String,
         dao_id: u64,
@@ -106,7 +78,7 @@ impl WeteeProject {
         });
 
         return run_sudo_or_gov(
-            self.base.client.index,
+            &self.base,
             from,
             dao_id,
             call,
@@ -115,10 +87,10 @@ impl WeteeProject {
                 amount: 0,
                 member: MemmberData::GLOBAL,
             },
-        );
+        ).await;
     }
 
-    pub fn project_join_request(
+    pub async fn project_join_request(
         &mut self,
         from: String,
         dao_id: u64,
@@ -133,50 +105,18 @@ impl WeteeProject {
             who,
         });
 
-        if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
-        }
-
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 成员列表
-    pub fn member_list(
+    pub async fn member_list(
         &mut self,
         dao_id: u64,
         project_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
         // 构建请求
-        let result: Vec<AccountId> = api
-            .get_storage_double_map("WeteeDAO", "ProjectMembers", dao_id, project_id, None)
+        let result: Vec<AccountId> = self.base
+            .get_storage_double_map("WeteeDAO", "ProjectMembers", QueryKey::IntKey(dao_id), QueryKey::IntKey(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -184,33 +124,25 @@ impl WeteeProject {
     }
 
     // 任务列表
-    pub fn task_list(
+    pub async fn task_list(
         &mut self,
         project_id: u64,
     ) -> anyhow::Result<Vec<TaskInfo<AccountId, Balance>>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
         // 构建请求
-        let result: Vec<TaskInfo<AccountId, Balance>> = api
-            .get_storage_map("WeteeProject", "Tasks", project_id, None)
+        let result: Vec<TaskInfo<AccountId, Balance>> = self.base.get_storage_map("WeteeProject", "Tasks", QueryKey::IntKey(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
         Ok(result)
     }
 
-    pub fn task_info(
+    pub async fn task_info(
         &mut self,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<TaskInfo<AccountId, Balance>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
         // 构建请求
-        let result: Vec<TaskInfo<AccountId, Balance>> = api
-            .get_storage_map("WeteeProject", "Tasks", project_id, None)
+        let result: Vec<TaskInfo<AccountId, Balance>> = self.base.get_storage_map("WeteeProject", "Tasks", QueryKey::IntKey(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
         let task = result
@@ -221,7 +153,7 @@ impl WeteeProject {
     }
 
     // 创建任务
-    pub fn create_task(
+    pub async fn create_task(
         &mut self,
         from: String,
         dao_id: u64,
@@ -236,12 +168,6 @@ impl WeteeProject {
         max_assignee: Option<u8>,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::create_task {
             name: name.into(),
@@ -277,41 +203,17 @@ impl WeteeProject {
             amount,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn start_task(
+    pub async fn start_task(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::start_task {
             dao_id,
@@ -319,41 +221,16 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn request_review(
+    pub async fn request_review(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::request_review {
             dao_id,
@@ -361,42 +238,18 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
 
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 完成任务
-    pub fn task_done(
+    pub async fn task_done(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::task_done {
             dao_id,
@@ -404,42 +257,17 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 加入任务
-    pub fn join_task(
+    pub async fn join_task(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::join_task {
             dao_id,
@@ -447,42 +275,17 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 离开任务
-    pub fn leave_task(
+    pub async fn leave_task(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::leave_task {
             dao_id,
@@ -490,42 +293,17 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 作为任务评审
-    pub fn join_task_review(
+    pub async fn join_task_review(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::join_task_review {
             dao_id,
@@ -533,42 +311,17 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 离开任务评审
-    pub fn leave_task_review(
+    pub async fn leave_task_review(
         &mut self,
         from: String,
         dao_id: u64,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::leave_task_review {
             dao_id,
@@ -576,29 +329,10 @@ impl WeteeProject {
             task_id,
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn make_review(
+    pub async fn make_review(
         &mut self,
         from: String,
         dao_id: u64,
@@ -607,12 +341,6 @@ impl WeteeProject {
         approve: bool,
         meta: String,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
         // 构建请求
         let call = RuntimeCall::WeteeProject(WeteeProjectCall::make_review {
             dao_id,
@@ -626,29 +354,10 @@ impl WeteeProject {
             meta: meta.into(),
         });
 
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
-    pub fn apply_project_funds(
+    pub async fn apply_project_funds(
         &mut self,
         from: String,
         dao_id: u64,
@@ -664,34 +373,9 @@ impl WeteeProject {
         });
 
         if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
         }
 
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 }

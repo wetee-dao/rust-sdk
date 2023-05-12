@@ -1,4 +1,4 @@
-use crate::account;
+use crate::{account, model::chain::QueryKey};
 use crate::chain::API_CLIENT_POOL;
 use crate::model::dao::WithGov;
 
@@ -22,40 +22,32 @@ impl WeteeGuild {
         Self { base: c }
     }
 
-    pub fn guild_list(
+    pub async fn guild_list(
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
         // 构建请求
-        let result: Vec<GuildInfo<AccountId, BlockNumber>> = api
-            .get_storage_map("WeteeDAO", "Guilds", dao_id, None)
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::IntKey(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
         Ok(result)
     }
 
-    pub fn guild_info(
+    pub async fn guild_info(
         &mut self,
         dao_id: u64,
         index: u32,
     ) -> anyhow::Result<GuildInfo<AccountId, BlockNumber>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
         // 构建请求
-        let result: Vec<GuildInfo<AccountId, BlockNumber>> = api
-            .get_storage_map("WeteeDAO", "Guilds", dao_id, None)
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::IntKey(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
         Ok(result.get(index as usize).unwrap().clone())
     }
 
-    pub fn create_guild(
+    pub async fn create_guild(
         &mut self,
         from: String,
         dao_id: u64,
@@ -75,56 +67,28 @@ impl WeteeGuild {
         });
 
         if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
         }
 
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 
     // 成员列表
-    pub fn member_list(
+    pub async fn member_list(
         &mut self,
         dao_id: u64,
         guild_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
-        let pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get(self.base.client.index).unwrap();
-
-        // 构建请求
-        let result: Vec<AccountId> = api
-            .get_storage_double_map("WeteeDAO", "GuildMembers", dao_id, guild_id, None)
+        // 构建请求 
+        let result: Vec<AccountId> = self.base
+            .get_storage_double_map("WeteeDAO", "GuildMembers", QueryKey::IntKey(dao_id), QueryKey::IntKey(guild_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
         Ok(result)
     }
 
-    pub fn guild_join_request(
+    pub async fn guild_join_request(
         &mut self,
         from: String,
         dao_id: u64,
@@ -139,34 +103,9 @@ impl WeteeGuild {
             who,
         });
         if ext.is_some() {
-            return run_sudo_or_gov(self.base.client.index, from, dao_id, call, ext.unwrap());
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
         }
 
-        let mut pool = API_CLIENT_POOL.lock().unwrap();
-        let api = pool.get_mut(self.base.client.index).unwrap();
-
-        let from_pair = account::get_from_address(from.clone())?;
-        api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
-
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                return Ok(());
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                return Err(anyhow::anyhow!(string_error));
-            }
-        };
+        self.base.send_and_sign(call,from).await
     }
 }
