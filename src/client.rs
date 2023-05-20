@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use codec::Decode;
 use once_cell::sync::Lazy;
 use sp_core::{sr25519};
-use substrate_api_client::{rpc::JsonrpseeClient, Api, ExtrinsicSigner, PlainTipExtrinsicParams, GetStorage, SubmitAndWatchUntilSuccess};
+use substrate_api_client::{rpc::JsonrpseeClient, Api, ExtrinsicSigner, PlainTipExtrinsicParams, GetStorage, SubmitAndWatchUntilSuccess, GetHeader};
 use tokio::sync::{mpsc::{channel, Sender}, oneshot};
 use wetee_runtime::{Signature, Runtime,RuntimeCall};
 
@@ -25,6 +25,18 @@ impl Client {
         Ok(Client { index: index as usize })
     }
 
+    pub async fn get_block_number(& self) -> anyhow::Result<u64, anyhow::Error> {
+        let sender = self.get_sender()?;
+        let (resp_tx, resp_rx) = oneshot::channel();
+        let cmd = Command::QueryBlockNumber {
+          resp: resp_tx,
+        };
+        sender.send(cmd).await.unwrap();
+      
+        let s = resp_rx.await.unwrap().unwrap();
+        Ok(s)
+    }
+
     pub async fn start(&mut self) -> anyhow::Result<bool, anyhow::Error> {
         let url = self.get_url();
         let client = JsonrpseeClient::new(url.as_str()).unwrap();
@@ -39,6 +51,12 @@ impl Client {
 
         while let Some(data) = rx.recv().await {
             match data {
+                Command::QueryBlockNumber { resp } => {
+                    let header_hash = api.get_finalized_head().unwrap().unwrap();
+                    let h = api.get_header(Some(header_hash)).unwrap().unwrap();
+                
+                    let _ = resp.send(Ok(h.number));
+                },
                 Command::QueryValue { storage_prefix, storage_key_name, resp } => {
                     let storagekey = api.metadata().storage_value_key(storage_prefix, storage_key_name).unwrap();
                     let s = api.get_opaque_storage_by_key_hash(storagekey, None).unwrap();
