@@ -207,6 +207,9 @@ impl Client {
     pub fn get_sender(& self) -> anyhow::Result<Sender<Command>> {
         let index = self.index;
         let _api_box = WORKER_POOL.try_lock().unwrap();
+        if index >= _api_box.len(){
+            return Err(anyhow::anyhow!("client not start"));
+        }
         let sender = _api_box.get(index).unwrap();
 
         match &sender.1 {
@@ -218,6 +221,9 @@ impl Client {
     pub fn set_sender(& self,s: Sender<Command>) -> anyhow::Result<bool> {
         let index = self.index;
         let mut _api_box = WORKER_POOL.try_lock().unwrap();
+        if index >= _api_box.len(){
+            return Err(anyhow::anyhow!("client not start"));
+        }
         let sender = _api_box.get_mut(index).unwrap();
 
         sender.1 = Some(s);
