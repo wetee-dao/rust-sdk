@@ -63,23 +63,8 @@ impl WeteeGov {
         dao_id: u64,
     ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
     {
-        // let key = api
-        //     .get_storage_double_map_key_prefix("WeteeGov", "ReferendumInfoOf", dao_id)
-        //     .unwrap();
-
-        // let storage_keys = api
-        //     .get_storage_keys_paged(Some(key), 1000, None, None)
-        //     .unwrap();
-
-        let mut results: Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)> = vec![];
-        // for storage_key in storage_keys.iter() {
-        //     let storage_data: Referendum<BlockNumber, RuntimeCall, Balance> = api
-        //         .get_storage_by_key_hash(storage_key.clone(), None)
-        //         .unwrap()
-        //         .unwrap();
-        //     let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
-        //     results.push((hash, storage_data));
-        // }
+        let results: Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)> = self.base.get_storage_double_map_first("WeteeGov", "ReferendumInfoOf", QueryKey::IntKey(dao_id)).await
+            .unwrap();
 
         Ok(results)
     }

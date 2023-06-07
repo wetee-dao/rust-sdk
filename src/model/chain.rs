@@ -46,6 +46,12 @@ pub enum Command {
         second: QueryKey,
         resp: Responder<Option<Vec<u8>>>,
     },
+    QueryDoubleMapFirst {
+		storage_prefix: &'static str,
+		storage_key_name: &'static str,
+        first: QueryKey,
+        resp: Responder<Vec<(String, Vec<u8>)>>,
+    },
     SubmitExtrinsic{
         call: RuntimeCall,
         signer: String,
