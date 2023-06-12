@@ -2,11 +2,14 @@ use crate::{account::add_pair, model::{account::AssetAccountData, chain::QueryKe
 
 use super::super::client::Client;
 
-use pallet_balances::AccountData;
-use sp_core::{crypto::Ss58Codec, sr25519, Pair};
+use codec::{Encode, Decode, MaxEncodedLen};
+// use pallet_balances::AccountData;
+use sp_core::{crypto::Ss58Codec, sr25519, Pair, RuntimeDebug};
 use sp_runtime::MultiAddress;
 
-use wetee_runtime::{RuntimeCall};
+use substrate_api_client::{AccountInfo};
+use wetee_runtime::{RuntimeCall, Index};
+use scale_info::TypeInfo;
 
 /// 账户
 pub struct Balance {
@@ -23,11 +26,13 @@ impl Balance {
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
         let id = sr25519::Public::from_string(&address).unwrap().into();
-        let balance:AccountData<u128> = self.base.get_storage_map("Balances", "Account", QueryKey::AccountId(id)).await.unwrap().unwrap_or_default();
+        let account:AccountInfo<Index,
+           AccountData<u128>,
+        > = self.base.get_storage_map("System", "Account", QueryKey::AccountId(id)).await.unwrap().unwrap_or_default();
         Ok(AssetAccountData {
-            free: balance.free.try_into().unwrap(),
-            frozen: balance.fee_frozen.try_into().unwrap(),
-            reserved: balance.reserved.try_into().unwrap(),
+            free: account.data.free,
+            frozen: account.data.frozen,
+            reserved: account.data.reserved,
             // balance.misc_frozen,
         })
     }
@@ -64,4 +69,22 @@ impl Balance {
         let call = RuntimeCall::Balances(pallet_balances::Call::transfer { dest: MultiAddress::Id(dest.into()), value: amount });
         self.base.send_and_sign(call,address).await
     }
+}
+
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, Default, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+pub struct AccountData<Balance> {
+	/// Non-reserved part of the balance which the account holder may be able to control.
+	///
+	/// This is the only balance that matters in terms of most operations on tokens.
+	pub free: Balance,
+	/// Balance which is has active holds on it and may not be used at all.
+	///
+	/// This is the sum of all individual holds together with any sums still under the (deprecated)
+	/// reserves API.
+	pub reserved: Balance,
+	/// The amount that `free` may not drop below when reducing the balance, except for actions
+	/// where the account owner cannot reasonably benefit from thr balance reduction, such as
+	/// slashing.
+	pub frozen: Balance,
 }
