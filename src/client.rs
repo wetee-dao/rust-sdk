@@ -36,6 +36,33 @@ impl Client {
         })
     }
 
+    pub fn get_status(&self) -> anyhow::Result<u8, anyhow::Error> {
+        let _status_box = WORKER_STATUS.try_lock().unwrap();
+        if self.index >= _status_box.len() {
+            return Err(anyhow::anyhow!("client not start"));
+        }
+        let status = _status_box.get(self.index).unwrap();
+        Ok(status.0.clone())
+    }
+
+    pub async fn stop(&self) -> anyhow::Result<(), anyhow::Error> {
+        let sender = self.get_sender()?;
+        let cmd = Command::Close;
+        sender.send(cmd).await.unwrap();
+
+        let mut _status_box = WORKER_STATUS.try_lock().unwrap();
+        if self.index >= _status_box.len() {
+            return Err(anyhow::anyhow!("client not start"));
+        }
+
+        let status = _status_box.get_mut(self.index).unwrap();
+        status.0 = 3;
+
+        self.set_sender(None)?;
+
+        Ok(())
+    }
+
     pub async fn get_block_number(&self) -> anyhow::Result<u64, anyhow::Error> {
         let sender = self.get_sender()?;
         let (resp_tx, resp_rx) = oneshot::channel();
@@ -57,7 +84,7 @@ impl Client {
         >::new(client)
         .unwrap();
         let (tx, mut rx) = channel::<Command>(50);
-        self.set_sender(tx)?;
+        self.set_sender(Some(tx))?;
 
         while let Some(data) = rx.recv().await {
             match data {
@@ -183,7 +210,7 @@ impl Client {
                         .get_storage_keys_paged(Some(storagekey), 1000, None, None)
                         .unwrap();
 
-                    let mut results =vec![];
+                    let mut results = vec![];
                     for storage_key in storage_keys.iter() {
                         let storage_data: Option<Vec<u8>> = api
                             .get_opaque_storage_by_key_hash(storage_key.clone(), None)
@@ -191,7 +218,7 @@ impl Client {
                         let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
                         match storage_data {
                             Some(storage) => results.push((hash, storage)),
-                            None => {},
+                            None => {}
                         }
                     }
 
@@ -300,7 +327,7 @@ impl Client {
         storage_prefix: &'static str,
         storage_key_name: &'static str,
         first: QueryKey,
-    ) -> anyhow::Result<Vec<(String,V)>> {
+    ) -> anyhow::Result<Vec<(String, V)>> {
         let sender = self.get_sender()?;
         let (resp_tx, resp_rx) = oneshot::channel();
         let cmd = Command::QueryDoubleMapFirst {
@@ -312,9 +339,12 @@ impl Client {
         sender.send(cmd).await.unwrap();
 
         let s = resp_rx.await.unwrap().unwrap();
-        let mut results =vec![];
-        for storage in s.iter() {  
-            results.push((storage.0.clone(),Decode::decode(&mut storage.1.as_slice())?));
+        let mut results = vec![];
+        for storage in s.iter() {
+            results.push((
+                storage.0.clone(),
+                Decode::decode(&mut storage.1.as_slice())?,
+            ));
         }
         Ok(results)
     }
@@ -336,10 +366,16 @@ impl Client {
     pub fn get_sender(&self) -> anyhow::Result<Sender<Command>> {
         let index = self.index;
         let _api_box = WORKER_POOL.try_lock().unwrap();
-        if index >= _api_box.len(){
+        let _status_box = WORKER_STATUS.try_lock().unwrap();
+        if index >= _status_box.len() || index >= _api_box.len() {
             return Err(anyhow::anyhow!("client not start"));
         }
+        let status = _status_box.get(index).unwrap();
         let sender = _api_box.get(index).unwrap();
+
+        if status.0 == 3 {
+            return Err(anyhow::anyhow!("client is stop"));
+        }
 
         match &sender.1 {
             Some(s) => Ok(s.clone()),
@@ -347,15 +383,15 @@ impl Client {
         }
     }
 
-    pub fn set_sender(&self, s: Sender<Command>) -> anyhow::Result<bool> {
+    pub fn set_sender(&self, s: Option<Sender<Command>>) -> anyhow::Result<bool> {
         let index = self.index;
         let mut _api_box = WORKER_POOL.try_lock().unwrap();
-        if index >= _api_box.len(){
+        if index >= _api_box.len() {
             return Err(anyhow::anyhow!("client not start"));
         }
         let sender = _api_box.get_mut(index).unwrap();
 
-        sender.1 = Some(s);
+        sender.1 = s;
         Ok(true)
     }
 
@@ -369,14 +405,18 @@ impl Client {
 // 全局区块链连接
 pub static WORKER_POOL: Lazy<Mutex<Vec<(String, Option<Sender<Command>>)>>> =
     Lazy::new(|| Mutex::new(vec![]));
+// 全局区块链状态
+pub static WORKER_STATUS: Lazy<Mutex<Vec<(u8, usize)>>> = Lazy::new(|| Mutex::new(vec![]));
 
 // 获取区块链连接
 pub fn init_worker_send(url: String) -> anyhow::Result<usize, anyhow::Error> {
     // 连接区块链
     let mut _api_box = WORKER_POOL.lock().unwrap();
+    let mut _api_status = WORKER_STATUS.lock().unwrap();
 
     let curl: String = url.clone();
     _api_box.push((curl, None));
+    _api_status.push((0, _api_box.len() - 1));
 
     Ok(_api_box.len() - 1)
 }
