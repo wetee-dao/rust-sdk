@@ -229,6 +229,7 @@ dependencies = [
  "once_cell",
  "pallet-balances",
  "parity-scale-codec",
+ "scale-info",
  "serde",
  "serde_json",
  "slab",

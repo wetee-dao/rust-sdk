@@ -225,10 +225,10 @@ impl Client {
                     let _ = resp.send(Ok(results));
                 }
                 Command::SubmitExtrinsic { resp, call, signer } => {
-                    let signer_nonce = api.get_nonce().unwrap();
-                    let xt = api.compose_extrinsic_offline(call, signer_nonce);
                     let from_pair = account::get_from_address(signer.clone()).unwrap();
                     api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+                    let signer_nonce = api.get_nonce().unwrap();
+                    let xt = api.compose_extrinsic_offline(call, signer_nonce);
                     // 发送请求
                     let result = api.submit_and_watch_extrinsic_until_success(xt, false);
                     match result {
