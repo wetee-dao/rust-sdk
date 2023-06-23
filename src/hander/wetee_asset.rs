@@ -1,9 +1,9 @@
-use crate::{model::{account::AssetAccountData, chain::QueryKey}};
 use super::super::client::Client;
+use crate::model::{account::AssetAccountData, chain::QueryKey};
 
-use wetee_runtime::{RuntimeCall, WeteeAssetsCall};
 use sp_core::{crypto::Ss58Codec, sr25519};
 use sp_runtime::MultiAddress;
+use wetee_runtime::{RuntimeCall, WeteeAssetsCall};
 
 /// 账户
 pub struct WeteeAsset {
@@ -21,7 +21,14 @@ impl WeteeAsset {
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
         let id = sr25519::Public::from_string(&address).unwrap().into();
-        let balance:AssetAccountData<u128> = self.base.get_storage_double_map("Tokens", "Accounts", QueryKey::IntKey(dao_id), QueryKey::AccountId(id))
+        let balance: AssetAccountData<u128> = self
+            .base
+            .get_storage_double_map(
+                "Tokens",
+                "Accounts",
+                QueryKey::AccountId(id),
+                QueryKey::U64Key(dao_id),
+            )
             .await
             .unwrap()
             .unwrap_or_default();
@@ -49,7 +56,7 @@ impl WeteeAsset {
             amount,
             init_dao_asset,
         });
-        self.base.send_and_sign(call,from).await
+        self.base.send_and_sign(call, from).await
     }
 
     pub async fn set_existenial_deposit(
@@ -62,7 +69,7 @@ impl WeteeAsset {
             dao_id,
             existenial_deposit: amount,
         });
-        self.base.send_and_sign(call,from).await
+        self.base.send_and_sign(call, from).await
     }
 
     pub async fn set_metadata(
@@ -72,7 +79,7 @@ impl WeteeAsset {
         metadata: wetee_assets::DaoAssetMeta,
     ) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeAsset(WeteeAssetsCall::set_metadata { dao_id, metadata });
-        self.base.send_and_sign(call,from).await
+        self.base.send_and_sign(call, from).await
     }
 
     pub async fn burn(
@@ -82,7 +89,7 @@ impl WeteeAsset {
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeAsset(WeteeAssetsCall::burn { dao_id, amount });
-        self.base.send_and_sign(call,from).await
+        self.base.send_and_sign(call, from).await
     }
 
     pub async fn transfer(
@@ -99,7 +106,7 @@ impl WeteeAsset {
             amount,
             dest: MultiAddress::Id(dest.into()),
         });
-        self.base.send_and_sign(call,from).await
+        self.base.send_and_sign(call, from).await
     }
 
     pub async fn join_request(
@@ -115,6 +122,6 @@ impl WeteeAsset {
             share_expect,
             existenial_deposit,
         });
-        self.base.send_and_sign(call,from).await
+        self.base.send_and_sign(call, from).await
     }
 }

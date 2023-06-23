@@ -18,7 +18,8 @@ pub type ChainApi = Api<
 
 #[derive(Debug,Clone)]
 pub enum QueryKey{
-    IntKey(u64),
+    U64Key(u64),
+    U32Key(u32),
     StrKey(String),
     AccountId(AccountId32),
 }

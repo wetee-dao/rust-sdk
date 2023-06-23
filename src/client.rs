@@ -115,7 +115,11 @@ impl Client {
                     key,
                 } => {
                     let storagekey = match key {
-                        QueryKey::IntKey(v) => api
+                        QueryKey::U64Key(v) => api
+                            .metadata()
+                            .storage_map_key(storage_prefix, storage_key_name, v)
+                            .unwrap(),
+                        QueryKey::U32Key(v) => api
                             .metadata()
                             .storage_map_key(storage_prefix, storage_key_name, v)
                             .unwrap(),
@@ -141,8 +145,30 @@ impl Client {
                     resp,
                 } => {
                     let storagekey = match first {
-                        QueryKey::IntKey(v) => match second {
-                            QueryKey::IntKey(v2) => api
+                        QueryKey::U64Key(v) => match second {
+                            QueryKey::U64Key(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                            QueryKey::U32Key(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                            QueryKey::StrKey(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                            QueryKey::AccountId(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                        },
+                        QueryKey::U32Key(v) => match second {
+                            QueryKey::U64Key(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                            QueryKey::U32Key(v2) => api
                                 .metadata()
                                 .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
                                 .unwrap(),
@@ -156,7 +182,11 @@ impl Client {
                                 .unwrap(),
                         },
                         QueryKey::StrKey(v) => match second {
-                            QueryKey::IntKey(v2) => api
+                            QueryKey::U64Key(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                            QueryKey::U32Key(v2) => api
                                 .metadata()
                                 .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
                                 .unwrap(),
@@ -170,7 +200,11 @@ impl Client {
                                 .unwrap(),
                         },
                         QueryKey::AccountId(v) => match second {
-                            QueryKey::IntKey(v2) => api
+                            QueryKey::U64Key(v2) => api
+                                .metadata()
+                                .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
+                                .unwrap(),
+                            QueryKey::U32Key(v2) => api
                                 .metadata()
                                 .storage_double_map_key(storage_prefix, storage_key_name, v, v2)
                                 .unwrap(),
@@ -196,7 +230,10 @@ impl Client {
                     resp,
                 } => {
                     let storagekey = match first {
-                        QueryKey::IntKey(v) => api
+                        QueryKey::U64Key(v) => api
+                            .get_storage_double_map_key_prefix(storage_prefix, storage_key_name, v)
+                            .unwrap(),
+                        QueryKey::U32Key(v) => api
                             .get_storage_double_map_key_prefix(storage_prefix, storage_key_name, v)
                             .unwrap(),
                         QueryKey::StrKey(v) => api

@@ -40,7 +40,7 @@ impl WeteeGov {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)>, anyhow::Error> {
-        let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = self.base.get_storage_map("WeteeGov", "PublicProps", QueryKey::IntKey(dao_id)).await
+        let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = self.base.get_storage_map("WeteeGov", "PublicProps", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
         Ok(result)
@@ -63,7 +63,7 @@ impl WeteeGov {
         dao_id: u64,
     ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
     {
-        let results: Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)> = self.base.get_storage_double_map_first("WeteeGov", "ReferendumInfoOf", QueryKey::IntKey(dao_id)).await
+        let results: Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)> = self.base.get_storage_double_map_first("WeteeGov", "ReferendumInfoOf", QueryKey::U64Key(dao_id)).await
             .unwrap();
 
         Ok(results)

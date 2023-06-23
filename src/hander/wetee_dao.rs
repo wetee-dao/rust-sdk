@@ -48,7 +48,7 @@ impl WeteeDAO {
 
     pub async fn member_list(&mut self, dao_id: u64) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求
-        let result: Vec<AccountId> = self.base.get_storage_map("WeteeDAO", "Members", QueryKey::IntKey(dao_id)).await
+        let result: Vec<AccountId> = self.base.get_storage_map("WeteeDAO", "Members", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -63,7 +63,7 @@ impl WeteeDAO {
         // 构建请求
         let who: AccountId32 = sr25519::Public::from_string(&member).unwrap().into();
         let result: u32 = self.base
-            .get_storage_double_map("WeteeDAO", "MemberPoint", QueryKey::IntKey(dao_id), QueryKey::AccountId(who)).await
+            .get_storage_double_map("WeteeDAO", "MemberPoint", QueryKey::U64Key(dao_id), QueryKey::AccountId(who)).await
             .unwrap()
             .unwrap_or_else(|| 0);
 
@@ -75,7 +75,7 @@ impl WeteeDAO {
         dao_id: u64,
     ) -> anyhow::Result<DaoInfo<AccountId, BlockNumber>, anyhow::Error> {
         // 构建请求
-        let result: DaoInfo<AccountId, BlockNumber> = self.base.get_storage_map("WeteeDAO", "Daos", QueryKey::IntKey(dao_id)).await
+        let result: DaoInfo<AccountId, BlockNumber> = self.base.get_storage_map("WeteeDAO", "Daos", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap();
 
@@ -107,7 +107,7 @@ impl WeteeDAO {
         let mut results = vec![];
         for quarter in 1..5 {
             let tasks: Vec<QuarterTask<AccountId>> = self.base
-                .get_storage_double_map("WeteeDAO", "RoadMaps", QueryKey::IntKey(dao_id), QueryKey::IntKey((year * 100 + quarter).into())).await
+                .get_storage_double_map("WeteeDAO", "RoadMaps", QueryKey::U64Key(dao_id), QueryKey::U32Key((year * 100 + quarter).into())).await
                 .unwrap()
                 .unwrap_or_else(|| vec![]);
 
@@ -143,7 +143,7 @@ impl WeteeDAO {
 
     // DAO 发行货币总量
     pub async fn total_issuance(&mut self, dao_id: u64) -> anyhow::Result<u128, anyhow::Error> {
-        let result: u128 = self.base.get_storage_map("Tokens", "TotalIssuance", QueryKey::IntKey(dao_id)).await
+        let result: u128 = self.base.get_storage_map("Tokens", "TotalIssuance", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| 0);
 

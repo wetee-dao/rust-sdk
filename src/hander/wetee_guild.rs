@@ -23,7 +23,7 @@ impl WeteeGuild {
         dao_id: u64,
     ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
         // 构建请求
-        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::IntKey(dao_id)).await
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -36,7 +36,7 @@ impl WeteeGuild {
         index: u32,
     ) -> anyhow::Result<GuildInfo<AccountId, BlockNumber>, anyhow::Error> {
         // 构建请求
-        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::IntKey(dao_id)).await
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -77,7 +77,7 @@ impl WeteeGuild {
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求 
         let result: Vec<AccountId> = self.base
-            .get_storage_double_map("WeteeDAO", "GuildMembers", QueryKey::IntKey(dao_id), QueryKey::IntKey(guild_id)).await
+            .get_storage_double_map("WeteeDAO", "GuildMembers", QueryKey::U64Key(dao_id), QueryKey::U64Key(guild_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 

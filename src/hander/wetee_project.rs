@@ -28,7 +28,7 @@ impl WeteeProject {
         dao_id: u64,
     ) -> anyhow::Result<Vec<ProjectInfo<AccountId>>, anyhow::Error> {
         // 构建请求
-        let result: Vec<ProjectInfo<AccountId>> = self.base.get_storage_map("WeteeProject", "DaoProjects", QueryKey::IntKey(dao_id)).await
+        let result: Vec<ProjectInfo<AccountId>> = self.base.get_storage_map("WeteeProject", "DaoProjects", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -117,7 +117,7 @@ impl WeteeProject {
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求
         let result: Vec<AccountId> = self.base
-            .get_storage_double_map("WeteeDAO", "ProjectMembers", QueryKey::IntKey(dao_id), QueryKey::IntKey(project_id)).await
+            .get_storage_double_map("WeteeDAO", "ProjectMembers", QueryKey::U64Key(dao_id), QueryKey::U64Key(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -130,7 +130,7 @@ impl WeteeProject {
         project_id: u64,
     ) -> anyhow::Result<Vec<TaskInfo<AccountId, Balance>>, anyhow::Error> {
         // 构建请求
-        let result: Vec<TaskInfo<AccountId, Balance>> = self.base.get_storage_map("WeteeProject", "Tasks", QueryKey::IntKey(project_id)).await
+        let result: Vec<TaskInfo<AccountId, Balance>> = self.base.get_storage_map("WeteeProject", "Tasks", QueryKey::U64Key(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -143,7 +143,7 @@ impl WeteeProject {
         task_id: u64,
     ) -> anyhow::Result<TaskInfo<AccountId, Balance>, anyhow::Error> {
         // 构建请求
-        let result: Vec<TaskInfo<AccountId, Balance>> = self.base.get_storage_map("WeteeProject", "Tasks", QueryKey::IntKey(project_id)).await
+        let result: Vec<TaskInfo<AccountId, Balance>> = self.base.get_storage_map("WeteeProject", "Tasks", QueryKey::U64Key(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
         let task = result
