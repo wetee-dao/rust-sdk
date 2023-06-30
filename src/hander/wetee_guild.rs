@@ -1,11 +1,11 @@
-use crate::{model::chain::QueryKey};
+use crate::model::chain::QueryKey;
 use crate::model::dao::WithGov;
 
 use super::{super::client::Client, wetee_gov::run_sudo_or_gov};
 use sp_core::crypto::Ss58Codec;
 use sp_core::sr25519;
 use sp_runtime::AccountId32;
-use wetee_dao::GuildInfo;
+use wetee_org::GuildInfo;
 use wetee_runtime::{AccountId, BlockNumber, RuntimeCall, WeteeGuildCall};
 
 /// 账户
@@ -23,7 +23,7 @@ impl WeteeGuild {
         dao_id: u64,
     ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
         // 构建请求
-        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::U64Key(dao_id)).await
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeOrg", "Guilds", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -36,7 +36,7 @@ impl WeteeGuild {
         index: u32,
     ) -> anyhow::Result<GuildInfo<AccountId, BlockNumber>, anyhow::Error> {
         // 构建请求
-        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeDAO", "Guilds", QueryKey::U64Key(dao_id)).await
+        let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeOrg", "Guilds", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -77,7 +77,7 @@ impl WeteeGuild {
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求 
         let result: Vec<AccountId> = self.base
-            .get_storage_double_map("WeteeDAO", "GuildMembers", QueryKey::U64Key(dao_id), QueryKey::U64Key(guild_id)).await
+            .get_storage_double_map("WeteeOrg", "GuildMembers", QueryKey::U64Key(dao_id), QueryKey::U64Key(guild_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 

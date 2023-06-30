@@ -1,5 +1,5 @@
 [package]
-name = "asyou_rust_sdk"
+name = "wetee_rust_sdk"
 version = "0.5.0"
 edition = "2021"
 
@@ -57,7 +57,7 @@ sp-runtime = { default-features = false, git = "https://github.com/paritytech/su
 pallet-balances = { git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
 wetee-runtime = { git = "https://github.com/WeteeDAO/wetee" }
 wetee-assets = { git = "https://github.com/WeteeDAO/wetee" }
-wetee-dao = { git = "https://github.com/WeteeDAO/wetee" }
+wetee-org = { git = "https://github.com/WeteeDAO/wetee" }
 wetee-project = { git = "https://github.com/WeteeDAO/wetee" }
 wetee-gov = { git = "https://github.com/WeteeDAO/wetee" }
 

@@ -1,6 +1,6 @@
 use crate::model::chain::QueryKey;
 use crate::model::dao::WithGov;
-use crate::{Client};
+use crate::Client;
 
 
 use super::wetee_gov::run_sudo_or_gov;
@@ -117,7 +117,7 @@ impl WeteeProject {
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求
         let result: Vec<AccountId> = self.base
-            .get_storage_double_map("WeteeDAO", "ProjectMembers", QueryKey::U64Key(dao_id), QueryKey::U64Key(project_id)).await
+            .get_storage_double_map("WeteeOrg", "ProjectMembers", QueryKey::U64Key(dao_id), QueryKey::U64Key(project_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 

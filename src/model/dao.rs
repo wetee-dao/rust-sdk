@@ -1,5 +1,5 @@
 use codec::{Decode, Encode};
-use wetee_dao::QuarterTask;
+use wetee_org::QuarterTask;
 use wetee_gov::MemmberData;
 use wetee_runtime::AccountId;
 

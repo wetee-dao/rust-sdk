@@ -1,20 +1,20 @@
-use crate::{model::{dao::Quarter, chain::QueryKey}};
-use super::super::client::Client;
+use crate::model::{dao::Quarter, chain::QueryKey};
+use super::{super::client::Client, wetee_gov::run_sudo_or_gov};
 
 use sp_core::{crypto::Ss58Codec, sr25519};
 use sp_runtime::AccountId32;
-pub use wetee_dao::{DaoInfo, QuarterTask, Status};
+pub use wetee_org::{OrgInfo, QuarterTask, Status};
 use wetee_runtime::{
-    AccountId, BlockNumber, RuntimeCall, WeteeAssetsCall, WeteeDaoCall,
+    AccountId, BlockNumber, RuntimeCall, WeteeAssetsCall, WeteeOrgCall,
 };
-
+use crate::model::dao::WithGov;
 
 /// DAO 模块
-pub struct WeteeDAO {
+pub struct WeteeOrg {
     pub base: Client,
 }
 
-impl WeteeDAO {
+impl WeteeOrg {
     pub fn new(c: Client) -> Self {
         Self { base: c }
     }
@@ -23,7 +23,7 @@ impl WeteeDAO {
     pub async fn next_dao_id(&mut self) -> anyhow::Result<u64, anyhow::Error> {
         // 构建请求
         let result: u64 = self.base
-            .get_storage_value("WeteeDAO", "NextDaoId").await
+            .get_storage_value("WeteeOrg", "NextDaoId").await
             .unwrap()
             .unwrap_or_else(|| 5000);
 
@@ -37,18 +37,39 @@ impl WeteeDAO {
         name: String,
         purpose: String,
         meta_data: String,
+        desc: String,
+        im_api: String,
+        bg: String,
+        logo: String,
+        img: String,
+        home_url: String,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let call = RuntimeCall::WeteeDAO(WeteeDaoCall::create_dao {
+        let call = RuntimeCall::WeteeOrg(WeteeOrgCall::create_dao {
             name: name.into(),
             purpose: purpose.into(),
             meta_data: meta_data.into(),
+            desc: desc.into(),
+            im_api: im_api.into(),
+            bg: bg.into(),
+            logo: logo.into(),
+            img: img.into(),
+            home_url: home_url.into(),
         });
         self.base.send_and_sign(call,from).await
     }
 
+    pub async fn org_list(&mut self, dao_id: u64) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
+        // 构建请求
+        let result: Vec<AccountId> = self.base.get_storage_map("WeteeOrg", "Members", QueryKey::U64Key(dao_id)).await
+            .unwrap()
+            .unwrap_or_else(|| vec![]);
+
+        Ok(result)
+    }
+
     pub async fn member_list(&mut self, dao_id: u64) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求
-        let result: Vec<AccountId> = self.base.get_storage_map("WeteeDAO", "Members", QueryKey::U64Key(dao_id)).await
+        let result: Vec<AccountId> = self.base.get_storage_map("WeteeOrg", "Members", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap_or_else(|| vec![]);
 
@@ -63,7 +84,7 @@ impl WeteeDAO {
         // 构建请求
         let who: AccountId32 = sr25519::Public::from_string(&member).unwrap().into();
         let result: u32 = self.base
-            .get_storage_double_map("WeteeDAO", "MemberPoint", QueryKey::U64Key(dao_id), QueryKey::AccountId(who)).await
+            .get_storage_double_map("WeteeOrg", "MemberPoint", QueryKey::U64Key(dao_id), QueryKey::AccountId(who)).await
             .unwrap()
             .unwrap_or_else(|| 0);
 
@@ -73,9 +94,9 @@ impl WeteeDAO {
     pub async fn dao_info(
         &mut self,
         dao_id: u64,
-    ) -> anyhow::Result<DaoInfo<AccountId, BlockNumber>, anyhow::Error> {
+    ) -> anyhow::Result<OrgInfo<AccountId, BlockNumber>, anyhow::Error> {
         // 构建请求
-        let result: DaoInfo<AccountId, BlockNumber> = self.base.get_storage_map("WeteeDAO", "Daos", QueryKey::U64Key(dao_id)).await
+        let result: OrgInfo<AccountId, BlockNumber> = self.base.get_storage_map("WeteeOrg", "Daos", QueryKey::U64Key(dao_id)).await
             .unwrap()
             .unwrap();
 
@@ -107,7 +128,7 @@ impl WeteeDAO {
         let mut results = vec![];
         for quarter in 1..5 {
             let tasks: Vec<QuarterTask<AccountId>> = self.base
-                .get_storage_double_map("WeteeDAO", "RoadMaps", QueryKey::U64Key(dao_id), QueryKey::U32Key((year * 100 + quarter).into())).await
+                .get_storage_double_map("WeteeOrg", "RoadMaps", QueryKey::U64Key(dao_id), QueryKey::U32Key((year * 100 + quarter).into())).await
                 .unwrap()
                 .unwrap_or_else(|| vec![]);
 
@@ -131,7 +152,7 @@ impl WeteeDAO {
         priority: u8,
         tags: Option<Vec<u8>>,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let call = RuntimeCall::WeteeDAO(WeteeDaoCall::create_roadmap_task {
+        let call = RuntimeCall::WeteeOrg(WeteeOrgCall::create_roadmap_task {
             dao_id,
             roadmap_id,
             name,
@@ -149,6 +170,48 @@ impl WeteeDAO {
 
         Ok(result)
     }
+
+    pub async fn create_app(&mut self, from: String, name: String,desc:String, icon: String, url: String) -> anyhow::Result<(), anyhow::Error> {
+        let call = RuntimeCall::WeteeOrg(WeteeOrgCall::create_app {
+            name: name.into(),
+            desc: desc.into(),
+            icon: icon.into(),
+            url: url.into(),
+        });
+        self.base.send_and_sign(call,from).await
+    }
+
+    pub async fn update_app_status(&mut self, from: String, app_id: u64, status: Status) -> anyhow::Result<(), anyhow::Error> {
+        let call = RuntimeCall::WeteeOrg(WeteeOrgCall::update_app_status {
+            app_id,
+            status,
+        });
+        self.base.send_and_sign(call,from).await
+    }
+
+    pub async fn org_integrate_app(&mut self, from: String, dao_id: u64, app_id: u64, ext: Option<WithGov>, ) -> anyhow::Result<(), anyhow::Error> {
+        let call = RuntimeCall::WeteeOrg(WeteeOrgCall::org_integrate_app {
+            dao_id,
+            app_id,
+        });
+        if ext.is_some() {
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
+        }
+        self.base.send_and_sign(call,from).await
+    }
+
+    pub async fn update_org_app_status(&mut self, from: String, dao_id: u64, app_id: u64, status: Status, ext: Option<WithGov>, ) -> anyhow::Result<(), anyhow::Error> {
+        let call = RuntimeCall::WeteeOrg(WeteeOrgCall::update_org_app_status {
+            dao_id,
+            app_id,
+            status,
+        });
+        if ext.is_some() {
+            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
+        }
+        self.base.send_and_sign(call,from).await
+    }
+    
 }
 
 // // 等待区块确认

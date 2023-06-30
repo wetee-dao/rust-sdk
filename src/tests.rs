@@ -11,7 +11,7 @@
 // use crate::hander::balance::Balance;
 // use crate::hander::wetee_app::Wetee;
 // use crate::hander::wetee_asset::WeteeAsset;
-// use crate::hander::wetee_dao::WeteeDAO;
+// use crate::hander::wetee_org::WeteeOrg;
 // use crate::hander::wetee_gov::WeteeGov;
 // use crate::hander::wetee_guild::WeteeGuild;
 // use crate::hander::wetee_project::WeteeProject;
@@ -92,14 +92,14 @@
 //     let client = Client::new(URL.to_string()).unwrap();
 //     println!("address {:?}", ss58address);
 
-//     let mut dao = WeteeDAO::new(client);
+//     let mut dao = WeteeOrg::new(client);
 //     let dao_id = dao.next_dao_id().unwrap();
 //     println!("dao ===> {}", dao_id);
 //     DAO_ID.set(dao_id).unwrap();
 
 //     dao.create_dao(
 //         address.clone(),
-//         "WeteeDAO".to_string(),
+//         "WeteeOrg".to_string(),
 //         "For the freedom of programming".to_string(),
 //         "{}".to_string(),
 //     )
@@ -151,7 +151,7 @@
 //     // 创建连接
 //     let client = Client::new(URL.to_string()).unwrap();
 
-//     let mut dao = WeteeDAO::new(client);
+//     let mut dao = WeteeOrg::new(client);
 //     let dao_id = DAO_ID.get().unwrap();
 //     let rs = dao.roadmap_list(*dao_id, 2023).unwrap();
 
