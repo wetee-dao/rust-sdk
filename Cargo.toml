@@ -55,11 +55,11 @@ sp-core = { default-features = false, git = "https://github.com/paritytech/subst
 sp-keyring = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
 sp-runtime = { default-features = false, git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
 pallet-balances = { git = "https://github.com/paritytech/substrate.git", "branch" = "polkadot-v0.9.39" }
-wetee-runtime = { git = "https://github.com/WeteeDAO/wetee" }
-wetee-assets = { git = "https://github.com/WeteeDAO/wetee" }
-wetee-org = { git = "https://github.com/WeteeDAO/wetee" }
-wetee-project = { git = "https://github.com/WeteeDAO/wetee" }
-wetee-gov = { git = "https://github.com/WeteeDAO/wetee" }
+wetee-runtime = { git = "https://github.com/WeteeDAO/wetee", "branch" = "hackathon-2023-summer"}
+wetee-assets = { git = "https://github.com/WeteeDAO/wetee", "branch" = "hackathon-2023-summer"}
+wetee-org = { git = "https://github.com/WeteeDAO/wetee", "branch" = "hackathon-2023-summer"}
+wetee-project = { git = "https://github.com/WeteeDAO/wetee", "branch" = "hackathon-2023-summer"}
+wetee-gov = { git = "https://github.com/WeteeDAO/wetee", "branch" = "hackathon-2023-summer"}
 
 [profile.release]
 opt-level = 3

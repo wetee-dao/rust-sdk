@@ -1,6 +1,6 @@
 use crate::{
     account,
-    model::chain::{Command, QueryKey},
+    model::chain::{Command, QueryKey, ChainApi},
 };
 
 use codec::Decode;
@@ -107,6 +107,30 @@ impl Client {
                         .get_opaque_storage_by_key_hash(storagekey, None)
                         .unwrap();
                     let _ = resp.send(Ok(s));
+                }
+                // 查询map所有值
+                Command::QueryMapAll { storage_prefix, storage_key_name, resp } => {
+                    let storagekey = api
+                        .metadata()
+                        .storage_map_key_prefix(storage_prefix, storage_key_name)
+                        .unwrap();
+                    let storage_keys = api
+                        .get_storage_keys_paged(Some(storagekey), 1000, None, None)
+                        .unwrap();
+
+                    let mut results = vec![];
+                    for storage_key in storage_keys.iter() {
+                        let storage_data: Option<Vec<u8>> = api
+                            .get_opaque_storage_by_key_hash(storage_key.clone(), None)
+                            .unwrap();
+                        let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
+                        match storage_data {
+                            Some(storage) => results.push((hash, storage)),
+                            None => {}
+                        }
+                    }
+
+                    let _ = resp.send(Ok(results));
                 }
                 Command::QueryMap {
                     storage_prefix,
@@ -311,6 +335,31 @@ impl Client {
         }
     }
 
+    pub async fn get_storage_map_all<V: Decode>(
+        &self,
+        storage_prefix: &'static str,
+        storage_key_name: &'static str,
+    ) -> anyhow::Result<Vec<(String, V)>> {
+        let sender = self.get_sender()?;
+        let (resp_tx, resp_rx) = oneshot::channel();
+        let cmd = Command::QueryMapAll {
+            storage_prefix,
+            storage_key_name,
+            resp: resp_tx,
+        };
+        sender.send(cmd).await.unwrap();
+
+        let s = resp_rx.await.unwrap().unwrap();
+        let mut results = vec![];
+        for storage in s.iter() {
+            results.push((
+                storage.0.clone(),
+                Decode::decode(&mut storage.1.as_slice())?,
+            ));
+        }
+        Ok(results)
+    }
+
     pub async fn get_storage_map<V: Decode>(
         &self,
         storage_prefix: &'static str,
@@ -436,6 +485,20 @@ impl Client {
         let index = self.index;
         let _api_box = WORKER_POOL.try_lock().unwrap();
         _api_box.get(index).unwrap().0.clone()
+    }
+
+
+    pub fn get_api(&self) -> ChainApi {
+        let url = self.get_url();
+        let client = JsonrpseeClient::new(url.as_str()).unwrap();
+        let api = Api::<
+            ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
+            JsonrpseeClient,
+            PlainTipExtrinsicParams<Runtime>,
+            Runtime,
+        >::new(client)
+        .unwrap();
+        api
     }
 }
 

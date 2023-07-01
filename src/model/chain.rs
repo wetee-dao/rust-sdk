@@ -40,6 +40,11 @@ pub enum Command {
         key: QueryKey,
         resp: Responder<Option<Vec<u8>>>,
     },
+    QueryMapAll {
+		storage_prefix: &'static str,
+		storage_key_name: &'static str,
+        resp: Responder<Vec<(String, Vec<u8>)>>,
+    },
     QueryDoubleMap {
 		storage_prefix: &'static str,
 		storage_key_name: &'static str,
