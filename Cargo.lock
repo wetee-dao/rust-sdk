@@ -5364,7 +5364,7 @@ dependencies = [
 [[package]]
 name = "wetee-app"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5381,7 +5381,7 @@ dependencies = [
 [[package]]
 name = "wetee-assets"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5404,7 +5404,7 @@ dependencies = [
 [[package]]
 name = "wetee-gov"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5425,7 +5425,7 @@ dependencies = [
 [[package]]
 name = "wetee-guild"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5450,7 +5450,7 @@ dependencies = [
 [[package]]
 name = "wetee-org"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5466,7 +5466,7 @@ dependencies = [
 [[package]]
 name = "wetee-primitives"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -5479,7 +5479,7 @@ dependencies = [
 [[package]]
 name = "wetee-project"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5504,7 +5504,7 @@ dependencies = [
 [[package]]
 name = "wetee-runtime"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-executive",
@@ -5552,7 +5552,7 @@ dependencies = [
 [[package]]
 name = "wetee-runtime-api"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "parity-scale-codec",
  "sp-api",
@@ -5563,7 +5563,7 @@ dependencies = [
 [[package]]
 name = "wetee-sudo"
 version = "1.0.0"
-source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#21ac3e1c64b0dce322f7d91278653a3b023b70ab"
+source = "git+https://github.com/WeteeDAO/wetee?branch=hackathon-2023-summer#c2fed158c378082494d98b01cb06cb13d09804b2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

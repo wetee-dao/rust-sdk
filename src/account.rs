@@ -130,8 +130,11 @@ pub fn pair_from_password(
 // 获取账户
 pub fn get_from_address(address: String) -> anyhow::Result<Pair, AccountError> {
     let mut _key_box = KERINGS.lock().unwrap();
-    let pair = _key_box.get(&address).unwrap();
-    Ok(pair.clone())
+    let pair = _key_box.get(&address);
+    if pair.is_none() {
+        return Err(AccountError::InvalidAddress(address));
+    }
+    Ok(pair.unwrap().clone())
 }
 
 // 获取账户

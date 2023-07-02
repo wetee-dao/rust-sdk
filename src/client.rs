@@ -74,7 +74,7 @@ impl Client {
     }
 
     pub async fn start(&mut self) -> anyhow::Result<bool, anyhow::Error> {
-        let url = self.get_url();
+        let url = self.get_url()?;
         let client = JsonrpseeClient::new(url.as_str()).unwrap();
         let mut api = Api::<
             ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
@@ -481,15 +481,18 @@ impl Client {
         Ok(true)
     }
 
-    pub fn get_url(&self) -> String {
+    pub fn get_url(&self) -> anyhow::Result<String> {
         let index = self.index;
         let _api_box = WORKER_POOL.try_lock().unwrap();
-        _api_box.get(index).unwrap().0.clone()
+        if index >= _api_box.len() {
+            return Err(anyhow::anyhow!("client not start"));
+        }
+        Ok(_api_box.get(index).unwrap().0.clone())
     }
 
 
     pub fn get_api(&self) -> ChainApi {
-        let url = self.get_url();
+        let url = self.get_url().unwrap();
         let client = JsonrpseeClient::new(url.as_str()).unwrap();
         let api = Api::<
             ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
