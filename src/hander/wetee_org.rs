@@ -1,16 +1,13 @@
 use super::{super::client::Client, wetee_gov::run_sudo_or_gov};
-use crate::account;
 use crate::model::{chain::QueryKey, dao::Quarter};
 
 use crate::model::dao::WithGov;
-use codec::Decode;
 use sp_core::{crypto::Ss58Codec, sr25519};
 use sp_runtime::AccountId32;
-use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 pub use wetee_org::{App, OrgApp};
 pub use wetee_org::{OrgInfo, QuarterTask, Status};
 use wetee_runtime::{
-    AccountId, BlockNumber, Runtime, RuntimeCall, Signature, WeteeAssetsCall, WeteeOrgCall,
+    AccountId, BlockNumber, RuntimeCall, WeteeAssetsCall, WeteeOrgCall,
 };
 
 /// DAO 模块
@@ -50,7 +47,6 @@ impl WeteeOrg {
         img: String,
         home_url: String,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let mut api = self.base.get_api();
         let call = RuntimeCall::WeteeOrg(WeteeOrgCall::create_dao {
             name: name.into(),
             purpose: purpose.into(),
@@ -62,56 +58,14 @@ impl WeteeOrg {
             img: img.into(),
             home_url: home_url.into(),
         });
-        // self.base.send_and_sign(call, from).await
-        let from_pair = account::get_from_address(from.clone()).unwrap();
-        api.set_signer(ExtrinsicSigner::<sr25519::Pair, Signature, Runtime>::new(
-            from_pair,
-        ));
-        let signer_nonce = api.get_nonce().unwrap();
-        let xt = api.compose_extrinsic_offline(call, signer_nonce);
-        // 发送请求
-        let result = api.submit_and_watch_extrinsic_until_success(xt, false);
-        match result {
-            Ok(report) => {
-                println!(
-                    "[+] Extrinsic got included in block {:?}",
-                    report.block_hash
-                );
-                Ok(())
-                // let _ = resp.send(Ok(report.block_hash.unwrap().to_string()));
-            }
-            Err(e) => {
-                println!("[+] Couldn't execute the extrinsic due to {:?}\n", e);
-                let string_error = format!("{:?}", e);
-                Err(anyhow::anyhow!(string_error))
-            }
-        }
+        self.base.send_and_sign(call, from).await
     }
 
     pub async fn orgs(
         &mut self,
     ) -> anyhow::Result<Vec<(String, OrgInfo<AccountId, u64>)>, anyhow::Error> {
-        let api = self.base.get_api();
-
-        let storagekey = api
-            .metadata()
-            .storage_map_key_prefix("WeteeOrg", "Daos")
-            .unwrap();
-        let storage_keys = api
-            .get_storage_keys_paged(Some(storagekey), 1000, None, None)
-            .unwrap();
-
-        let mut results: Vec<(String, OrgInfo<AccountId, u64>)> = vec![];
-        for storage_key in storage_keys.iter() {
-            let storage_data: Option<Vec<u8>> = api
-                .get_opaque_storage_by_key_hash(storage_key.clone(), None)
-                .unwrap();
-            let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
-            match storage_data {
-                Some(storage) => results.push((hash, Decode::decode(&mut storage.as_slice())?)),
-                None => {}
-            }
-        }
+        let results: Vec<(String, OrgInfo<AccountId, u64>)> =
+            self.base.get_storage_map_all("WeteeOrg", "Daos").await.unwrap();
 
         Ok(results)
     }
@@ -320,26 +274,11 @@ impl WeteeOrg {
     pub async fn app_hubs(
         &mut self,
     ) -> anyhow::Result<Vec<(String, App<AccountId>)>, anyhow::Error> {
-        let api = self.base.get_api();
-        let storagekey = api
-            .metadata()
-            .storage_map_key_prefix("WeteeOrg", "AppHubs")
+        let results: Vec<(String, App<AccountId>)> = self
+            .base
+            .get_storage_map_all("WeteeOrg", "AppHubs")
+            .await
             .unwrap();
-        let storage_keys = api
-            .get_storage_keys_paged(Some(storagekey), 1000, None, None)
-            .unwrap();
-
-        let mut results: Vec<(String, App<AccountId>)> = vec![];
-        for storage_key in storage_keys.iter() {
-            let storage_data: Option<Vec<u8>> = api
-                .get_opaque_storage_by_key_hash(storage_key.clone(), None)
-                .unwrap();
-            let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
-            match storage_data {
-                Some(storage) => results.push((hash, Decode::decode(&mut storage.as_slice())?)),
-                None => {}
-            }
-        }
 
         Ok(results)
     }
