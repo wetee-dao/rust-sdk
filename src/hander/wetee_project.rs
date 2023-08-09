@@ -83,6 +83,7 @@ impl WeteeProject {
                 run_type: 2,
                 amount: 0,
                 member: MemmberData::GLOBAL,
+                period_index: 0,
             },
         ).await;
     }

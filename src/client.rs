@@ -1,21 +1,19 @@
 use crate::{
     account,
-    model::chain::{Command, QueryKey, ChainApi},
+    model::chain::{Command, QueryKey, ChainApi, WeteeConfig},
 };
 
 use codec::Decode;
 use once_cell::sync::Lazy;
-use sp_core::sr25519;
 use std::sync::Mutex;
 use substrate_api_client::{
-    rpc::JsonrpseeClient, Api, ExtrinsicSigner, GetHeader, GetStorage, PlainTipExtrinsicParams,
-    SubmitAndWatchUntilSuccess,
+    rpc::JsonrpseeClient, Api, ac_primitives::ExtrinsicSigner, GetStorage,SubmitAndWatchUntilSuccess, GetChainInfo,
 };
 use tokio::sync::{
     mpsc::{channel, Sender},
     oneshot,
 };
-use wetee_runtime::{Runtime, RuntimeCall, Signature};
+use wetee_runtime::RuntimeCall;
 
 /// 区块链连接
 #[derive(Debug)]
@@ -76,13 +74,7 @@ impl Client {
     pub async fn start(&mut self) -> anyhow::Result<bool, anyhow::Error> {
         let url = self.get_url()?;
         let client = JsonrpseeClient::new(url.as_str()).unwrap();
-        let mut api = Api::<
-            ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-            JsonrpseeClient,
-            PlainTipExtrinsicParams<Runtime>,
-            Runtime,
-        >::new(client)
-        .unwrap();
+        let mut api = Api::<WeteeConfig,JsonrpseeClient>::new(client).unwrap();
         let (tx, mut rx) = channel::<Command>(50);
         self.set_sender(Some(tx))?;
 
@@ -92,7 +84,7 @@ impl Client {
                     let header_hash = api.get_finalized_head().unwrap().unwrap();
                     let h = api.get_header(Some(header_hash)).unwrap().unwrap();
 
-                    let _ = resp.send(Ok(h.number));
+                    let _ = resp.send(Ok(h.number.try_into().unwrap()));
                 }
                 Command::QueryValue {
                     storage_prefix,
@@ -104,7 +96,7 @@ impl Client {
                         .storage_value_key(storage_prefix, storage_key_name)
                         .unwrap();
                     let s = api
-                        .get_opaque_storage_by_key_hash(storagekey, None)
+                        .get_opaque_storage_by_key(storagekey, None)
                         .unwrap();
                     let _ = resp.send(Ok(s));
                 }
@@ -121,7 +113,7 @@ impl Client {
                     let mut results = vec![];
                     for storage_key in storage_keys.iter() {
                         let storage_data: Option<Vec<u8>> = api
-                            .get_opaque_storage_by_key_hash(storage_key.clone(), None)
+                            .get_opaque_storage_by_key(storage_key.clone(), None)
                             .unwrap();
                         let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
                         match storage_data {
@@ -157,7 +149,7 @@ impl Client {
                             .unwrap(),
                     };
                     let s = api
-                        .get_opaque_storage_by_key_hash(storagekey, None)
+                        .get_opaque_storage_by_key(storagekey, None)
                         .unwrap();
                     let _ = resp.send(Ok(s));
                 }
@@ -243,7 +235,7 @@ impl Client {
                         },
                     };
                     let s = api
-                        .get_opaque_storage_by_key_hash(storagekey, None)
+                        .get_opaque_storage_by_key(storagekey, None)
                         .unwrap();
                     let _ = resp.send(Ok(s));
                 }
@@ -274,7 +266,7 @@ impl Client {
                     let mut results = vec![];
                     for storage_key in storage_keys.iter() {
                         let storage_data: Option<Vec<u8>> = api
-                            .get_opaque_storage_by_key_hash(storage_key.clone(), None)
+                            .get_opaque_storage_by_key(storage_key.clone(), None)
                             .unwrap();
                         let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
                         match storage_data {
@@ -287,7 +279,7 @@ impl Client {
                 }
                 Command::SubmitExtrinsic { resp, call, signer } => {
                     let from_pair = account::get_from_address(signer.clone()).unwrap();
-                    api.set_signer(ExtrinsicSigner::<_, Signature, Runtime>::new(from_pair));
+                    api.set_signer(ExtrinsicSigner::<WeteeConfig>::new(from_pair));
                     let signer_nonce = api.get_nonce().unwrap();
                     let xt = api.compose_extrinsic_offline(call, signer_nonce);
                     // 发送请求
@@ -495,10 +487,8 @@ impl Client {
         let url = self.get_url().unwrap();
         let client = JsonrpseeClient::new(url.as_str()).unwrap();
         let api = Api::<
-            ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
+            WeteeConfig,
             JsonrpseeClient,
-            PlainTipExtrinsicParams<Runtime>,
-            Runtime,
         >::new(client)
         .unwrap();
         api

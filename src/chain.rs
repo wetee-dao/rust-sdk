@@ -1,5 +1,5 @@
 use once_cell::sync::Lazy;
-use sp_core::sr25519::{Pair};
+use sp_core::sr25519::Pair;
 use std::collections::HashMap;
 use std::sync::Mutex;
 

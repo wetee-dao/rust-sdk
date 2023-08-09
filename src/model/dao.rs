@@ -23,4 +23,5 @@ pub struct WithGov {
     pub run_type: u8,
     pub amount: u128,
     pub member: MemmberData,
+    pub period_index: u32,
 }

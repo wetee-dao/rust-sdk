@@ -7,9 +7,8 @@ use codec::{Encode, Decode, MaxEncodedLen};
 use sp_core::{crypto::Ss58Codec, sr25519, Pair, RuntimeDebug};
 use sp_runtime::MultiAddress;
 
-use substrate_api_client::{AccountInfo};
-use wetee_runtime::{RuntimeCall, Index};
-use scale_info::TypeInfo;
+use substrate_api_client::ac_primitives::AccountInfo;
+use wetee_runtime::{RuntimeCall, Nonce};
 
 /// 账户
 pub struct Balance {
@@ -26,7 +25,8 @@ impl Balance {
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
         let id = sr25519::Public::from_string(&address).unwrap().into();
-        let account:AccountInfo<Index,
+        let account:AccountInfo<
+           Nonce,
            AccountData<u128>,
         > = self.base.get_storage_map("System", "Account", QueryKey::AccountId(id)).await.unwrap().unwrap_or_default();
         Ok(AssetAccountData {
@@ -72,7 +72,7 @@ impl Balance {
 }
 
 
-#[derive(Encode, Decode, Clone, PartialEq, Eq, Default, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+#[derive(Encode, Decode, Clone, PartialEq, Eq, Default, RuntimeDebug, MaxEncodedLen)]
 pub struct AccountData<Balance> {
 	/// Non-reserved part of the balance which the account holder may be able to control.
 	///
