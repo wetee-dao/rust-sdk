@@ -1,20 +1,38 @@
-use sp_runtime::AccountId32;
-use substrate_api_client::{rpc::JsonrpseeClient};
-use substrate_api_client::{
-    Api, ExtrinsicSigner, PlainTipExtrinsicParams,
-};
+use codec::{Decode, Encode};
 use sp_core::sr25519;
+use sp_runtime::traits::BlakeTwo256;
+use sp_runtime::AccountId32;
+use substrate_api_client::ac_primitives::{Config, AccountData, AssetTipExtrinsicParams, ExtrinsicSigner};
+use substrate_api_client::rpc::JsonrpseeClient;
+use substrate_api_client::Api;
 use tokio::sync::oneshot;
-use wetee_runtime::{Signature, Runtime, RuntimeCall};
+use wetee_runtime::{RuntimeCall, Header, Block, Nonce, BlockNumber, Hash, AccountId, Address, Signature};
 
+
+/// Default set of commonly used types by Substrate kitchensink runtime.
+#[derive(Decode, Encode, Clone, Eq, PartialEq, Debug)]
+pub struct WeteeConfig {}
+impl Config for WeteeConfig {
+	type Index = Nonce;
+	type BlockNumber = BlockNumber;
+	type Hash = Hash;
+	type AccountId = AccountId;
+	type Address = Address;
+	type Signature = Signature;
+	type Hasher = BlakeTwo256;
+	type Header = Header;
+	type AccountData = AccountData<Self::Balance>;
+	type ExtrinsicParams = AssetTipExtrinsicParams<Self>;
+	type CryptoKey = sr25519::Pair;
+	type ExtrinsicSigner = ExtrinsicSigner<Self>;
+	type Block = Block;
+	type Balance = u128;
+	type ContractCurrency = u128;
+	type StakingBalance = u128;
+}
 
 // 用于存储客户端的连接
-pub type ChainApi = Api<
-    ExtrinsicSigner<sr25519::Pair, Signature, Runtime>,
-    JsonrpseeClient,
-    PlainTipExtrinsicParams<Runtime>,
-    Runtime,
->;
+pub type ChainApi = Api<WeteeConfig, JsonrpseeClient>;
 
 #[derive(Debug,Clone)]
 pub enum QueryKey{

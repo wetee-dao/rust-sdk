@@ -17,12 +17,16 @@ pub async fn run_sudo_or_gov(
     param: WithGov,
 ) -> anyhow::Result<(), anyhow::Error> {
     let _result = if param.run_type == 1 {
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::create_propose { dao_id: dao_id, member_data: param.member, proposal:Box::new(call), value: param.amount });
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::create_propose { 
+            dao_id: dao_id, 
+            member_data: param.member, 
+            proposal:Box::new(call), 
+            period_index: param.period_index,
+        });
         return client.send_and_sign(call,from).await;
     };
     let call = RuntimeCall::WeteeSudo(WeteeSudoCall::sudo { dao_id: dao_id, call: Box::new(call)});
     client.send_and_sign(call,from).await
-    
 }
 
 /// DAO 治理模块
@@ -52,8 +56,13 @@ impl WeteeGov {
         from: String,
         dao_id: u64,
         propose_id: u32,
+        deposit: u128,
     ) -> anyhow::Result<(), anyhow::Error> {
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::start_referendum { dao_id, propose_id });
+        let call = RuntimeCall::WeteeGov(WeteeGovCall::start_referendum {
+            dao_id, 
+            propose_id,
+            deposit,
+        });
         self.base.send_and_sign(call,from).await
     }
 
@@ -119,34 +128,6 @@ impl WeteeGov {
 
     pub async fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeGov(WeteeGovCall::unlock { dao_id });
-        self.base.send_and_sign(call,from).await
-    }
-
-    pub async fn set_voting_period(
-        &mut self,
-        from: String,
-        dao_id: u64,
-        period: u64,
-        ext: Option<WithGov>,
-    ) -> anyhow::Result<(), anyhow::Error> {
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_voting_period { dao_id, period });
-        if ext.is_some() {
-            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
-        }
-        self.base.send_and_sign(call,from).await
-    }
-
-    pub async fn set_runment_period(
-        &mut self,
-        from: String,
-        dao_id: u64,
-        period: u64,
-        ext: Option<WithGov>,
-    ) -> anyhow::Result<(), anyhow::Error> {
-        let call = RuntimeCall::WeteeGov(WeteeGovCall::set_runment_period { dao_id, period });
-        if ext.is_some() {
-            return run_sudo_or_gov(&self.base, from, dao_id, call, ext.unwrap()).await;
-        }
         self.base.send_and_sign(call,from).await
     }
 }

@@ -1,17 +1,16 @@
 use super::{super::client::Client, wetee_gov::run_sudo_or_gov};
 use crate::account;
+use crate::model::chain::WeteeConfig;
 use crate::model::{chain::QueryKey, dao::Quarter};
 
 use crate::model::dao::WithGov;
 use codec::Decode;
 use sp_core::{crypto::Ss58Codec, sr25519};
 use sp_runtime::AccountId32;
-use substrate_api_client::{ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
+use substrate_api_client::{ac_primitives::ExtrinsicSigner, GetStorage, SubmitAndWatchUntilSuccess};
 pub use wetee_org::{App, OrgApp};
 pub use wetee_org::{OrgInfo, QuarterTask, Status};
-use wetee_runtime::{
-    AccountId, BlockNumber, Runtime, RuntimeCall, Signature, WeteeAssetsCall, WeteeOrgCall,
-};
+use wetee_runtime::{AccountId, BlockNumber, RuntimeCall, WeteeOrgCall, WeteeAssetsCall};
 
 /// DAO 模块
 pub struct WeteeOrg {
@@ -64,7 +63,7 @@ impl WeteeOrg {
         });
         // self.base.send_and_sign(call, from).await
         let from_pair = account::get_from_address(from.clone()).unwrap();
-        api.set_signer(ExtrinsicSigner::<sr25519::Pair, Signature, Runtime>::new(
+        api.set_signer(ExtrinsicSigner::<WeteeConfig>::new(
             from_pair,
         ));
         let signer_nonce = api.get_nonce().unwrap();
@@ -104,7 +103,7 @@ impl WeteeOrg {
         let mut results: Vec<(String, OrgInfo<AccountId, u64>)> = vec![];
         for storage_key in storage_keys.iter() {
             let storage_data: Option<Vec<u8>> = api
-                .get_opaque_storage_by_key_hash(storage_key.clone(), None)
+                .get_opaque_storage_by_key(storage_key.clone(), None)
                 .unwrap();
             let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
             match storage_data {
@@ -332,7 +331,7 @@ impl WeteeOrg {
         let mut results: Vec<(String, App<AccountId>)> = vec![];
         for storage_key in storage_keys.iter() {
             let storage_data: Option<Vec<u8>> = api
-                .get_opaque_storage_by_key_hash(storage_key.clone(), None)
+                .get_opaque_storage_by_key(storage_key.clone(), None)
                 .unwrap();
             let hash = "0x".to_owned() + &hex::encode(storage_key.clone().0);
             match storage_data {
