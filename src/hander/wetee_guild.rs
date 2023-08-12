@@ -22,6 +22,7 @@ impl WeteeGuild {
         &mut self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
+        
         // 构建请求
         let result: Vec<GuildInfo<AccountId, BlockNumber>> = self.base.get_storage_map("WeteeOrg", "Guilds", QueryKey::U64Key(dao_id)).await
             .unwrap()
