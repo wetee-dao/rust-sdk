@@ -59,18 +59,20 @@ impl WeteeOrg {
         self.base.send_and_sign(call,from).await
     }
 
+    // DAO 组织
     pub async fn orgs(
         &mut self,
     ) -> anyhow::Result<Vec<(String, OrgInfo<AccountId, u64>)>, anyhow::Error> {
         let results: Vec<(String, OrgInfo<AccountId, u64>)> = self
-        .base
-        .get_storage_map_all("WeteeOrg", "Daos")
-        .await
-        .unwrap();
+            .base
+            .get_storage_map_all("WeteeOrg", "Daos")
+            .await
+            .unwrap();
 
         Ok(results)
     }
 
+    // 成员列表
     pub async fn member_list(
         &mut self,
         dao_id: u64,
@@ -86,6 +88,7 @@ impl WeteeOrg {
         Ok(result)
     }
 
+    // 成员声誉
     pub async fn member_point(
         &mut self,
         dao_id: u64,
@@ -108,6 +111,7 @@ impl WeteeOrg {
         Ok(result)
     }
 
+    // DAO 信息
     pub async fn dao_info(
         &mut self,
         dao_id: u64,
@@ -169,7 +173,7 @@ impl WeteeOrg {
         Ok(results)
     }
 
-    //
+    // 创建任务
     pub async fn create_task(
         &mut self,
         from: String,
@@ -201,6 +205,7 @@ impl WeteeOrg {
         Ok(result)
     }
 
+    // 创建应用
     pub async fn create_app(
         &mut self,
         from: String,
@@ -218,6 +223,7 @@ impl WeteeOrg {
         self.base.send_and_sign(call, from).await
     }
 
+    // 应用状态
     pub async fn update_app_status(
         &mut self,
         from: String,
@@ -235,6 +241,7 @@ impl WeteeOrg {
         self.base.send_and_sign(call, from).await
     }
 
+    // 应用集成
     pub async fn org_integrate_app(
         &mut self,
         from: String,
@@ -249,6 +256,7 @@ impl WeteeOrg {
         self.base.send_and_sign(call, from).await
     }
 
+    // 更新应用状态
     pub async fn update_org_app_status(
         &mut self,
         from: String,
@@ -272,6 +280,7 @@ impl WeteeOrg {
         self.base.send_and_sign(call, from).await
     }
 
+    // DAO 应用
     pub async fn app_hubs(
         &mut self,
     ) -> anyhow::Result<Vec<(String, App<AccountId>)>, anyhow::Error> {
@@ -284,6 +293,7 @@ impl WeteeOrg {
         Ok(results)
     }
 
+    // 组织应用
     pub async fn org_apps(
         &mut self,
         dao_id: u64,
