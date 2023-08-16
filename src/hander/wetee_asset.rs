@@ -15,8 +15,9 @@ impl WeteeAsset {
         Self { base: c }
     }
 
+    /// 查询余额
     pub async fn balance(
-        &mut self,
+        & self,
         dao_id: u64,
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
@@ -36,8 +37,9 @@ impl WeteeAsset {
         Ok(balance)
     }
 
+    /// 创建资产
     pub async fn create_asset(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         meta_name: String,
@@ -59,8 +61,9 @@ impl WeteeAsset {
         self.base.send_and_sign(call, from).await
     }
 
+    /// 设置资产
     pub async fn set_existenial_deposit(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         amount: u128,
@@ -72,8 +75,9 @@ impl WeteeAsset {
         self.base.send_and_sign(call, from).await
     }
 
+    /// 设置资产元数据
     pub async fn set_metadata(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         metadata: wetee_assets::DaoAssetMeta,
@@ -82,8 +86,9 @@ impl WeteeAsset {
         self.base.send_and_sign(call, from).await
     }
 
+    /// 销毁资产
     pub async fn burn(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         amount: u128,
@@ -92,8 +97,9 @@ impl WeteeAsset {
         self.base.send_and_sign(call, from).await
     }
 
+    /// 转移资产
     pub async fn transfer(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         to: String,
@@ -109,8 +115,9 @@ impl WeteeAsset {
         self.base.send_and_sign(call, from).await
     }
 
+    /// 加入 DAO
     pub async fn join_request(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         share_expect: u32,

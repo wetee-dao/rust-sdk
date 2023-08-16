@@ -33,7 +33,7 @@ impl WeteeOrg {
 
     // 创建 DAO
     pub async fn create_dao(
-        &mut self,
+       & self,
         from: String,
         name: String,
         purpose: String,
@@ -61,7 +61,7 @@ impl WeteeOrg {
 
     // DAO 组织
     pub async fn orgs(
-        &mut self,
+       & self,
     ) -> anyhow::Result<Vec<(String, OrgInfo<AccountId, u64>)>, anyhow::Error> {
         let results: Vec<(String, OrgInfo<AccountId, u64>)> = self
             .base
@@ -74,7 +74,7 @@ impl WeteeOrg {
 
     // 成员列表
     pub async fn member_list(
-        &mut self,
+       & self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
         // 构建请求
@@ -90,7 +90,7 @@ impl WeteeOrg {
 
     // 成员声誉
     pub async fn member_point(
-        &mut self,
+       & self,
         dao_id: u64,
         member: String,
     ) -> anyhow::Result<u32, anyhow::Error> {
@@ -113,7 +113,7 @@ impl WeteeOrg {
 
     // DAO 信息
     pub async fn dao_info(
-        &mut self,
+       & self,
         dao_id: u64,
     ) -> anyhow::Result<OrgInfo<AccountId, BlockNumber>, anyhow::Error> {
         // 构建请求
@@ -129,7 +129,7 @@ impl WeteeOrg {
 
     // 加入 DAO
     pub async fn join(
-        &mut self,
+       & self,
         from: String,
         dao_id: u64,
         share_expect: u32,
@@ -145,7 +145,7 @@ impl WeteeOrg {
 
     // DAO 里程碑
     pub async fn roadmap_list(
-        &mut self,
+       & self,
         dao_id: u64,
         year: u32,
     ) -> anyhow::Result<Vec<Quarter>, anyhow::Error> {
@@ -175,7 +175,7 @@ impl WeteeOrg {
 
     // 创建任务
     pub async fn create_task(
-        &mut self,
+       & self,
         from: String,
         dao_id: u64,
         roadmap_id: u32,
@@ -194,7 +194,7 @@ impl WeteeOrg {
     }
 
     // DAO 发行货币总量
-    pub async fn total_issuance(&mut self, dao_id: u64) -> anyhow::Result<u128, anyhow::Error> {
+    pub async fn total_issuance(& self, dao_id: u64) -> anyhow::Result<u128, anyhow::Error> {
         let result: u128 = self
             .base
             .get_storage_map("Tokens", "TotalIssuance", QueryKey::U64Key(dao_id))
@@ -207,7 +207,7 @@ impl WeteeOrg {
 
     // 创建应用
     pub async fn create_app(
-        &mut self,
+       & self,
         from: String,
         name: String,
         desc: String,
@@ -225,7 +225,7 @@ impl WeteeOrg {
 
     // 应用状态
     pub async fn update_app_status(
-        &mut self,
+       & self,
         from: String,
         app_id: u64,
         status: u8,
@@ -243,7 +243,7 @@ impl WeteeOrg {
 
     // 应用集成
     pub async fn org_integrate_app(
-        &mut self,
+       & self,
         from: String,
         dao_id: u64,
         app_id: u64,
@@ -258,7 +258,7 @@ impl WeteeOrg {
 
     // 更新应用状态
     pub async fn update_org_app_status(
-        &mut self,
+       & self,
         from: String,
         dao_id: u64,
         app_id: u64,
@@ -282,7 +282,7 @@ impl WeteeOrg {
 
     // DAO 应用
     pub async fn app_hubs(
-        &mut self,
+       & self,
     ) -> anyhow::Result<Vec<(String, App<AccountId>)>, anyhow::Error> {
         let results: Vec<(String, App<AccountId>)> = self
             .base
@@ -295,7 +295,7 @@ impl WeteeOrg {
 
     // 组织应用
     pub async fn org_apps(
-        &mut self,
+       & self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<OrgApp<BlockNumber>>, anyhow::Error> {
         let result: Vec<OrgApp<BlockNumber>> = self

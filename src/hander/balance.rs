@@ -21,7 +21,7 @@ impl Balance {
     }
 
     pub async fn balance(
-        &mut self,
+        & self,
         address: String,
     ) -> anyhow::Result<AssetAccountData<u128>, anyhow::Error> {
         let id = sr25519::Public::from_string(&address).unwrap().into();
@@ -38,7 +38,7 @@ impl Balance {
     }
 
     pub async fn transfer(
-        &mut self,
+        & self,
         from: String,
         to: String,
         amount: u128,
@@ -50,7 +50,7 @@ impl Balance {
     }
 
     pub async fn init_from_pair(
-        &mut self,
+        & self,
         to: String,
         amount: u128,
     ) -> anyhow::Result<(), anyhow::Error> {

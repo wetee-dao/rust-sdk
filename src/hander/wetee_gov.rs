@@ -41,7 +41,7 @@ impl WeteeGov {
 
     // 待开始的投票
     pub async fn pending_referendum_list(
-        &mut self,
+        & self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)>, anyhow::Error> {
         let result: Vec<(u32, Hash, RuntimeCall, MemmberData, AccountId)> = self.base.get_storage_map("WeteeGov", "PublicProps", QueryKey::U64Key(dao_id)).await
@@ -52,7 +52,7 @@ impl WeteeGov {
 
     // 开始一个投票
     pub async fn start_referendum(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         propose_id: u32,
@@ -68,7 +68,7 @@ impl WeteeGov {
 
     // 获取正在投票的项目
     pub async fn referendum_list(
-        &mut self,
+        & self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<(String, Referendum<BlockNumber, RuntimeCall, Balance>)>, anyhow::Error>
     {
@@ -80,7 +80,7 @@ impl WeteeGov {
 
     // 投票
     pub async fn vote_for_referendum(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         referendum_index: u32,
@@ -98,7 +98,7 @@ impl WeteeGov {
 
     // 获取投票结果
     pub async fn votes_of_user(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
     ) -> anyhow::Result<
@@ -117,7 +117,7 @@ impl WeteeGov {
     }
 
     pub async fn run_proposal(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         id: u32,
@@ -126,7 +126,7 @@ impl WeteeGov {
         self.base.send_and_sign(call,from).await
     }
 
-    pub async fn unlock(&mut self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
+    pub async fn unlock(& self, from: String, dao_id: u64) -> anyhow::Result<(), anyhow::Error> {
         let call = RuntimeCall::WeteeGov(WeteeGovCall::unlock { dao_id });
         self.base.send_and_sign(call,from).await
     }

@@ -34,7 +34,7 @@ impl Wetee {
     //     };
     // }
 
-    // pub async fn get_app(&mut self, app_id: u64) -> Result<MTeeApp, Box<dyn std::error::Error>> {
+    // pub async fn get_app(& self, app_id: u64) -> Result<MTeeApp, Box<dyn std::error::Error>> {
     //     // 获取区块链接口
     //     let api = self.base.get_client().await?;
 
@@ -57,7 +57,7 @@ impl Wetee {
     //     };
     // }
 
-    // pub async fn run_app(&mut self, from: String, app_id: u64) -> Result<u64, anyhow::Error> {
+    // pub async fn run_app(& self, from: String, app_id: u64) -> Result<u64, anyhow::Error> {
     //     // 获取区块链接口
     //     // let api = self.base.get_client().await?;
 

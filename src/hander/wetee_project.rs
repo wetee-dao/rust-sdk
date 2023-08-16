@@ -24,7 +24,7 @@ impl WeteeProject {
 
     // 项目列表
     pub async fn project_list(
-        &mut self,
+        & self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<ProjectInfo<AccountId>>, anyhow::Error> {
         // 构建请求
@@ -37,7 +37,7 @@ impl WeteeProject {
 
     // 创建项目
     pub async fn create_project(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         name: String,
@@ -60,7 +60,7 @@ impl WeteeProject {
     }
 
     pub async fn project_join_request_with_root(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -89,7 +89,7 @@ impl WeteeProject {
     }
 
     pub async fn project_join_request(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -112,7 +112,7 @@ impl WeteeProject {
 
     // 成员列表
     pub async fn member_list(
-        &mut self,
+        & self,
         dao_id: u64,
         project_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
@@ -127,7 +127,7 @@ impl WeteeProject {
 
     // 任务列表
     pub async fn task_list(
-        &mut self,
+        & self,
         project_id: u64,
     ) -> anyhow::Result<Vec<TaskInfo<AccountId, Balance>>, anyhow::Error> {
         // 构建请求
@@ -139,7 +139,7 @@ impl WeteeProject {
     }
 
     pub async fn task_info(
-        &mut self,
+        & self,
         project_id: u64,
         task_id: u64,
     ) -> anyhow::Result<TaskInfo<AccountId, Balance>, anyhow::Error> {
@@ -156,7 +156,7 @@ impl WeteeProject {
 
     // 创建任务
     pub async fn create_task(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -210,7 +210,7 @@ impl WeteeProject {
     }
 
     pub async fn start_task(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -227,7 +227,7 @@ impl WeteeProject {
     }
 
     pub async fn request_review(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -246,7 +246,7 @@ impl WeteeProject {
 
     // 完成任务
     pub async fn task_done(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -264,7 +264,7 @@ impl WeteeProject {
 
     // 加入任务
     pub async fn join_task(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -282,7 +282,7 @@ impl WeteeProject {
 
     // 离开任务
     pub async fn leave_task(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -300,7 +300,7 @@ impl WeteeProject {
 
     // 作为任务评审
     pub async fn join_task_review(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -318,7 +318,7 @@ impl WeteeProject {
 
     // 离开任务评审
     pub async fn leave_task_review(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -335,7 +335,7 @@ impl WeteeProject {
     }
 
     pub async fn make_review(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,
@@ -360,7 +360,7 @@ impl WeteeProject {
     }
 
     pub async fn apply_project_funds(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         project_id: u64,

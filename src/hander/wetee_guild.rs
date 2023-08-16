@@ -18,8 +18,9 @@ impl WeteeGuild {
         Self { base: c }
     }
 
+    /// 工会列表
     pub async fn guild_list(
-        &mut self,
+        & self,
         dao_id: u64,
     ) -> anyhow::Result<Vec<GuildInfo<AccountId, BlockNumber>>, anyhow::Error> {
         
@@ -32,7 +33,7 @@ impl WeteeGuild {
     }
 
     pub async fn guild_info(
-        &mut self,
+        & self,
         dao_id: u64,
         index: u32,
     ) -> anyhow::Result<GuildInfo<AccountId, BlockNumber>, anyhow::Error> {
@@ -45,7 +46,7 @@ impl WeteeGuild {
     }
 
     pub async fn create_guild(
-        &mut self,
+        &self,
         from: String,
         dao_id: u64,
         name: String,
@@ -72,7 +73,7 @@ impl WeteeGuild {
 
     // 成员列表
     pub async fn member_list(
-        &mut self,
+        &self,
         dao_id: u64,
         guild_id: u64,
     ) -> anyhow::Result<Vec<AccountId>, anyhow::Error> {
@@ -86,7 +87,7 @@ impl WeteeGuild {
     }
 
     pub async fn guild_join_request(
-        &mut self,
+        & self,
         from: String,
         dao_id: u64,
         guild_id: u64,
