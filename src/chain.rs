@@ -9,4 +9,5 @@ pub static KERINGS: Lazy<Mutex<HashMap<String, Pair>>> = Lazy::new(|| {
     Mutex::new(m)
 });
 
+/// 金额单位
 pub const UNIT: u64 = 1_000_000_000_000;

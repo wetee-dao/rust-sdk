@@ -32,6 +32,7 @@ impl WeteeGuild {
         Ok(result)
     }
 
+    /// 工会信息
     pub async fn guild_info(
         & self,
         dao_id: u64,
@@ -45,6 +46,7 @@ impl WeteeGuild {
         Ok(result.get(index as usize).unwrap().clone())
     }
 
+    /// 创建工会
     pub async fn create_guild(
         &self,
         from: String,
@@ -86,6 +88,7 @@ impl WeteeGuild {
         Ok(result)
     }
 
+    /// 加入工会
     pub async fn guild_join_request(
         & self,
         from: String,

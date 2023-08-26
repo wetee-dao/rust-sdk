@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// 应用
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct TeeApp {
     pub id: u64,

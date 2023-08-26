@@ -20,6 +20,7 @@ impl Balance {
         Self { base: c }
     }
 
+    /// 资产
     pub async fn balance(
         & self,
         address: String,
@@ -37,6 +38,7 @@ impl Balance {
         })
     }
 
+    /// 转账
     pub async fn transfer(
         & self,
         from: String,
@@ -49,6 +51,7 @@ impl Balance {
         self.base.send_and_sign(call,from).await
     }
 
+    /// 从 dev pair 转账
     pub async fn init_from_pair(
         & self,
         to: String,

@@ -116,6 +116,7 @@ impl WeteeGov {
         Ok(result.into_iter().filter(|x| x.dao_id == dao_id).collect())
     }
 
+    /// 执行提案
     pub async fn run_proposal(
         & self,
         from: String,

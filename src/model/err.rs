@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+/// 账户错误
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum AccountError {
     #[error("InvalidFormat")]
@@ -18,6 +19,7 @@ pub enum AccountError {
     InvalidPath(String),
 }
 
+/// 客户端错误
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum ClientError {
     #[error("InvalidClient: {0}")]

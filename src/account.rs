@@ -219,16 +219,14 @@ pub fn sign_from_address(address: String, ctx: String) -> anyhow::Result<String,
     Ok("0x".to_owned() + &str)
 }
 
+/// 格式化公钥 hex
 pub fn format_public_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
     format!("0x{}", HexDisplay::from(&public_key.as_ref()))
 }
 
+/// 格式化种子 hex
 pub fn format_seed<P: sp_core::Pair>(seed: SeedFor<P>) -> String {
     format!("0x{}", HexDisplay::from(&seed.as_ref()))
-}
-
-pub fn format_hex_key<P: sp_core::Pair>(public_key: PublicFor<P>) -> String {
-    format!("0x{}", HexDisplay::from(&public_key.as_ref()))
 }
 
 // pub fn pair_signer(pair: Pair) -> PairSigner<WeteeConfig, Pair> {

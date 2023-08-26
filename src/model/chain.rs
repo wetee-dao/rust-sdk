@@ -34,6 +34,7 @@ impl Config for WeteeConfig {
 // 用于存储客户端的连接
 pub type ChainApi = Api<WeteeConfig, JsonrpseeClient>;
 
+/// 查询数据类型
 #[derive(Debug,Clone)]
 pub enum QueryKey{
     U64Key(u64),
@@ -42,6 +43,7 @@ pub enum QueryKey{
     AccountId(AccountId32),
 }
 
+/// 命令
 #[derive(Debug)]
 pub enum Command {
     QueryBlockNumber {
@@ -83,4 +85,6 @@ pub enum Command {
     },
     Close,
 }
+
+/// 错误的返回渠道
 pub type Responder<T> = oneshot::Sender<anyhow::Result<T>>;
